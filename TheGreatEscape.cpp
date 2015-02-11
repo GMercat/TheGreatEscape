@@ -692,6 +692,7 @@ bool CIA::IsCheminPossible (const int aNumCaseDepart, const int aNumCaseArrivee)
 void CIA::AjoutMurMatriceGraphe (const WallDatas& aWallDatas)
 {
     const bool bVertical = (0 == aWallDatas.Orientation.compare(string("V")));
+    int NumCaseMax = mWidth * mHeight - 1;
     
     if (bVertical && (aWallDatas.PositionY != mHeight))
     {
@@ -738,6 +739,49 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
                mMatriceGraph[NumCase1 + 1][NumCase1] /= POIDS_MUR;
                mMatriceGraph[NumCase2][NumCase2 + 1] /= POIDS_MUR;
                mMatriceGraph[NumCase2 + 1][NumCase2] /= POIDS_MUR;
+
+               for (int i = -1; i < 3; ++i)
+               {
+                  int NumCaseSrc  = NumCase1 + (i * mWidth) - 1;
+                  int NumCaseDest = NumCase1 + (i * mWidth);
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseDest = NumCase1 + (i * mWidth) + 1;
+                  NumCaseSrc  = NumCase1 + (i * mWidth) + 2;
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                  }
+               }
+               for (int i = -1; i < 1; ++i)
+               {
+                  int NumCaseSrc  = NumCase1 + (i * mWidth);
+                  int NumCaseDest = NumCase1 + ((i + 1) * mWidth);
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseSrc  = NumCase1 + (i * mWidth) + 1;
+                  NumCaseDest = NumCase1 + ((i + 1) * mWidth) + 1;
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseDest][NumCaseSrc] /= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseDest = NumCase1 + ((i + 1) * mWidth);
+                  NumCaseSrc  = NumCase1 + ((i + 2) * mWidth);
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseDest = NumCase1 + ((i + 1) * mWidth) + 1;
+                  NumCaseSrc  = NumCase1 + ((i + 2) * mWidth) + 1;
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseDest][NumCaseSrc] /= COEF_POIDS_CHEMIN;
+                  }
+               }
            }
            else
            {
@@ -745,6 +789,49 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
                mMatriceGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
                mMatriceGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
                mMatriceGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
+
+               for (int i = -1; i < 3; ++i)
+               {
+                  int NumCaseSrc  = NumCase1 + (i * mWidth) - 1;
+                  int NumCaseDest = NumCase1 + (i * mWidth);
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseDest = NumCase1 + (i * mWidth) + 1;
+                  NumCaseSrc  = NumCase1 + (i * mWidth) + 2;
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                  }
+               }
+               for (int i = -1; i < 1; ++i)
+               {
+                  int NumCaseSrc  = NumCase1 + (i * mWidth);
+                  int NumCaseDest = NumCase1 + ((i + 1) * mWidth);
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseSrc  = NumCase1 + (i * mWidth) + 1;
+                  NumCaseDest = NumCase1 + ((i + 1) * mWidth) + 1;
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseDest][NumCaseSrc] *= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseDest = NumCase1 + ((i + 1) * mWidth);
+                  NumCaseSrc  = NumCase1 + ((i + 2) * mWidth);
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                  }
+                  NumCaseDest = NumCase1 + ((i + 1) * mWidth) + 1;
+                  NumCaseSrc  = NumCase1 + ((i + 2) * mWidth) + 1;
+                  if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                  {
+                     mMatriceGraph[NumCaseDest][NumCaseSrc] *= COEF_POIDS_CHEMIN;
+                  }
+               }
            }
        }
    }
@@ -761,6 +848,49 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
                mMatriceGraph[NumCase1 + mWidth][NumCase1] /= POIDS_MUR;
                mMatriceGraph[NumCase2][NumCase2 + mWidth] /= POIDS_MUR;
                mMatriceGraph[NumCase2 + mWidth][NumCase2] /= POIDS_MUR;
+
+                for (int i = -1; i < 3; ++i)
+                {
+                   int NumCaseSrc  = NumCase1 - mWidth + i;
+                   int NumCaseDest = NumCase1 + i;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseSrc  = NumCase1 + (2 * mWidth) + i;
+                   NumCaseDest = NumCase1 + mWidth + i;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                   }
+                }
+                for (int i = -1; i < 1; ++i)
+                {
+                   int NumCaseSrc  = NumCase1 + i;
+                   int NumCaseDest = NumCase1 + i + 1;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseSrc  = NumCase1 + mWidth + i;
+                   NumCaseDest = NumCase1 + mWidth + i + 1;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseDest][NumCaseSrc] /= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseDest = NumCase1 + i + 1;
+                   NumCaseSrc  = NumCase1 + i + 2;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] /= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseDest = NumCase1 + mWidth + i + 1;
+                   NumCaseSrc  = NumCase1 + mWidth + i + 2;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseDest][NumCaseSrc] /= COEF_POIDS_CHEMIN;
+                   }
+                }
            }
            else
            {
@@ -768,6 +898,49 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
                mMatriceGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
                mMatriceGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
                mMatriceGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
+
+                for (int i = -1; i < 3; ++i)
+                {
+                   int NumCaseSrc  = NumCase1 - mWidth + i;
+                   int NumCaseDest = NumCase1 + i;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseSrc  = NumCase1 + (2 * mWidth) + i;
+                   NumCaseDest = NumCase1 + mWidth + i;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                   }
+                }
+                for (int i = -1; i < 1; ++i)
+                {
+                   int NumCaseSrc  = NumCase1 + i;
+                   int NumCaseDest = NumCase1 + i + 1;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseSrc  = NumCase1 + mWidth + i;
+                   NumCaseDest = NumCase1 + mWidth + i + 1;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseDest][NumCaseSrc] *= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseDest = NumCase1 + i + 1;
+                   NumCaseSrc  = NumCase1 + i + 2;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseSrc][NumCaseDest] *= COEF_POIDS_CHEMIN;
+                   }
+                   NumCaseDest = NumCase1 + mWidth + i + 1;
+                   NumCaseSrc  = NumCase1 + mWidth + i + 2;
+                   if ((0 <=  NumCaseSrc) && (NumCaseSrc <= NumCaseMax) && (0 <=  NumCaseDest) && (NumCaseDest <= NumCaseMax))
+                   {
+                      mMatriceGraph[NumCaseDest][NumCaseSrc] *= COEF_POIDS_CHEMIN;
+                   }
+                }
            }
        }
    }
@@ -844,7 +1017,8 @@ int main()
         }
         
         string Action;
-        if ((IdPremierPlayer == myId) || (PlayersDatas[myId].WallsLeft == 0) || ((PlayersPCC[myId].size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2)))
+        if ((IdPremierPlayer == myId) || (PlayersDatas[myId].WallsLeft == 0) || ((PlayersPCC[myId].size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2))
+           || (playerCount < 2))
         {
             cerr << "G" << endl;
             Action = IA.GetNextDirection (PlayersPCC[myId]);
