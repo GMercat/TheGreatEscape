@@ -355,8 +355,8 @@ bool CIA::CalculPlusCourtCheminPlayer (const PlayerDatas& aPlayersDatas, vector<
             default:
                 break;
         }
-        int DistanceMin = 99;
-        for (int i=0; i < CasesArrivees.size();++i)
+        unsigned int DistanceMin = 99;
+        for (unsigned int i=0; i < CasesArrivees.size();++i)
         {
             vector<int> PCC;
             bReturn = CalculPlusCourtChemin (aPlayersDatas.PositionX + aPlayersDatas.PositionY * mWidth, CasesArrivees[i], PCC);
@@ -367,6 +367,7 @@ bool CIA::CalculPlusCourtCheminPlayer (const PlayerDatas& aPlayersDatas, vector<
             }
         }
     }
+    return bReturn;
 }
 
 bool CIA::CalculPlusCourtChemin (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin)
@@ -438,8 +439,8 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
 {
     string WallBuilding;
     
-    int iCase = 0;
-    int iCaseNext = 1;
+    unsigned int iCase = 0;
+    unsigned int iCaseNext = 1;
     
     while (WallBuilding.empty () && (iCaseNext < aPlusCourtChemin.size ()))
     {
@@ -662,8 +663,8 @@ bool CIA::IsCheminPossiblePlayer (const PlayerDatas& aPlayersDatas)
             default:
                 break;
         }
-        int DistanceMin = 99;
-        int i = 0;
+
+        unsigned int i = 0;
         while ((false == bCheminExiste) && (i < CasesArrivees.size()))
         {
             bCheminExiste = IsCheminPossible (aPlayersDatas.PositionX + aPlayersDatas.PositionY * mWidth, CasesArrivees[i]);
@@ -750,10 +751,6 @@ int main()
     int playerCount; // number of players (2 or 3)
     int myId; // id of my player (0 = 1st player, 1 = 2nd player, ...)
     cin >> w >> h >> playerCount >> myId; cin.ignore();
-
-    int myPositionX = 0;
-    int myPositionY = 0;
-    int myWallsLeft = 0;
     
     vector<PlayerDatas> PlayersDatas;
     vector<WallDatas>   WallsDatas;
@@ -765,7 +762,7 @@ int main()
     {
         IA.ConstruireMatriceGraphe ();
 
-        int Marge = playerCount - 1;
+        unsigned int Marge = playerCount - 1;
         Marge = 0;
         PlayersDatas.clear ();
         WallsDatas.clear ();
@@ -796,8 +793,8 @@ int main()
         // Write an action using cout. DON'T FORGET THE "<< endl"
         // To debug: cerr << "Debug messages..." << endl;
         int IdPremierPlayer = -1;
-        int DistancePremierPlayer = 999;
-        vector<vector<int>> PlayersPCC;
+        unsigned int DistancePremierPlayer = 999;
+        vector< vector<int> > PlayersPCC;
         for (int i = 0; i < playerCount; i++)
         {
             vector<int> PCC;
