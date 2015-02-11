@@ -1,0 +1,11 @@
+# Fichiers à ignorer partout dans l'arborescense
+*~
+
+# Fichiers à la racine
+/.project
+/.cproject
+/.pydevproject
+/.gdbinit
+/.settings/
+/Debug*
+/Release*
