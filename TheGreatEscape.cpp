@@ -389,12 +389,15 @@ bool CIA::CalculPlusCourtChemin (const int aNumCaseDepart, const int aNumCaseArr
         ++NbIter;
     }
 
-    vector <int>::const_iterator IterPlusCourtChemin = aOutPlusCourtChemin.begin ();
-    for (; IterPlusCourtChemin != aOutPlusCourtChemin.end (); ++IterPlusCourtChemin)
+    if (aOutPlusCourtChemin.size () < (mWidth * mHeight))
     {
-        cerr << (*IterPlusCourtChemin) << " ";
+        vector <int>::const_iterator IterPlusCourtChemin = aOutPlusCourtChemin.begin ();
+        for (; IterPlusCourtChemin != aOutPlusCourtChemin.end (); ++IterPlusCourtChemin)
+        {
+            cerr << (*IterPlusCourtChemin) << " ";
+        }
+        cerr << endl;
     }
-    cerr << endl;
     cerr << "=>" << aOutPlusCourtChemin.size () << endl;
     
     return ((NbIter != NbIterMax) && (NumCaseCourante < POIDS_MUR));
@@ -557,6 +560,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
             
             if (false == bConstructible)
             {
+                cerr << "Impossible de construire le mur [" << WallDatas.PositionX << "," << WallDatas.PositionY << " " << WallDatas.Orientation << "]. " << "Ce joueur est bloqué " << itPlayerDatas->Direction << endl;
                 AjoutMurMatriceGrapheLite (WallDatas, true);
                 CalculCheminMinimaux ();
                 WallBuilding.clear ();
@@ -1018,7 +1022,7 @@ int main()
         
         string Action;
         if ((IdPremierPlayer == myId) || (PlayersDatas[myId].WallsLeft == 0) || ((PlayersPCC[myId].size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2))
-           || (playerCount < 2))
+            || (playerCount == 3))
         {
             cerr << "G" << endl;
             Action = IA.GetNextDirection (PlayersPCC[myId]);
