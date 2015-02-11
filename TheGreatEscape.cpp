@@ -819,8 +819,8 @@ int main()
             cerr << "G" << endl;
             Action = IA.GetNextDirection (PlayersPCC[myId]);
         }
-        //else if (DistancePremierPlayer < (2 * w / 3))
-        else
+        else if (DistancePremierPlayer <= 3)
+        //else
         {
             cerr << "B" << endl;
             Action = IA.BuildWall (PlayersDatas, PlayersPCC[IdPremierPlayer], WallsDatas);
@@ -830,10 +830,10 @@ int main()
                 Action = IA.GetNextDirection (PlayersPCC[myId]);
             }
         }
-        //else
-        //{
-        //    Action = IA.GetNextDirection (PlayersPCC[myId]);
-        //}
+        else
+        {
+            Action = IA.GetNextDirection (PlayersPCC[myId]);
+        }
         //Action = IA.GetNextDirection (PlayersPCC[myId]);
         cout << Action << endl; // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
     }
