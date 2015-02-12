@@ -40,10 +40,11 @@ public:
     CIA (const int aWidth, const int aHeight);
     ~CIA(void);
     
-    void    ConstruireMatriceGraphe     (void);
-    void    MiseAJourMatriceGraphe      (const WallDatas& aWallDatas, const bool abDestroy = false);
-    bool    CalculPlusCourtCheminPlayer (const PlayerDatas& aPlayersDatas, vector<int>& aOutPCC);
-    void    CalculCheminMinimaux        (void);
+    void    ConstruireMatriceGraphe       (void);
+    void    AjoutMurMatriceGraphe         (const WallDatas& aWallDatas);
+    void    AjoutMurMatriceGrapheLite     (const WallDatas& aWallDatas, const bool abDestroy = false);
+    bool    CalculPlusCourtCheminPlayer   (const PlayerDatas& aPlayersDatas, vector<int>& aOutPCC);
+    void    CalculCheminMinimaux          (void);
     
     string  GetNextDirection            (const vector<int>& aPlusCourtChemin);
     string  BuildWall                   (const vector<PlayerDatas>& aPlayersDatas, const vector<int>& aPlusCourtChemin, const vector<WallDatas>& aWallsBuilt);
@@ -545,7 +546,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
         
         if (bConstructible)
         {
-            MiseAJourMatriceGraphe (WallDatas);
+            AjoutMurMatriceGrapheLite (WallDatas);
             CalculCheminMinimaux ();
             vector<PlayerDatas>::const_iterator itPlayerDatas = aPlayersDatas.begin ();
             while (itPlayerDatas != aPlayersDatas.end () && bConstructible)
@@ -556,7 +557,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
             
             if (false == bConstructible)
             {
-                MiseAJourMatriceGraphe (WallDatas, true);
+                AjoutMurMatriceGrapheLite (WallDatas, true);
                 CalculCheminMinimaux ();
                 WallBuilding.clear ();
             }
@@ -688,7 +689,7 @@ bool CIA::IsCheminPossible (const int aNumCaseDepart, const int aNumCaseArrivee)
     return ((NbIter != NbIterMax) && (NumCaseCourante < POIDS_MUR));
 }
 
-void CIA::MiseAJourMatriceGraphe (const WallDatas& aWallDatas, const bool abDestroy/* = false*/)
+void CIA::AjoutMurMatriceGraphe (const WallDatas& aWallDatas)
 {
     const bool bVertical = (0 == aWallDatas.Orientation.compare(string("V")));
     
@@ -699,20 +700,10 @@ void CIA::MiseAJourMatriceGraphe (const WallDatas& aWallDatas, const bool abDest
             int NumCase1 = aWallDatas.PositionX - 1 + aWallDatas.PositionY * mWidth;
             int NumCase2 = aWallDatas.PositionX - 1 + (aWallDatas.PositionY + 1) * mWidth;
             
-            if (abDestroy)
-            {
-                mMatriceGraph[NumCase1][NumCase1 + 1] /= POIDS_MUR;
-                mMatriceGraph[NumCase1 + 1][NumCase1] /= POIDS_MUR;
-                mMatriceGraph[NumCase2][NumCase2 + 1] /= POIDS_MUR;
-                mMatriceGraph[NumCase2 + 1][NumCase2] /= POIDS_MUR;
-            }
-            else
-            {
-                mMatriceGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
-                mMatriceGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
-                mMatriceGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
-                mMatriceGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
-            }
+             mMatriceGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
+             mMatriceGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
+             mMatriceGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
+             mMatriceGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
         }
     }
     else if ((false == bVertical) && (aWallDatas.PositionX != mWidth))
@@ -722,22 +713,64 @@ void CIA::MiseAJourMatriceGraphe (const WallDatas& aWallDatas, const bool abDest
             int NumCase1 = aWallDatas.PositionX + (aWallDatas.PositionY - 1) * mWidth;
             int NumCase2 = aWallDatas.PositionX + 1 + (aWallDatas.PositionY - 1) * mWidth;
             
-            if (abDestroy)
-            {
-                mMatriceGraph[NumCase1][NumCase1 + mWidth] /= POIDS_MUR;
-                mMatriceGraph[NumCase1 + mWidth][NumCase1] /= POIDS_MUR;
-                mMatriceGraph[NumCase2][NumCase2 + mWidth] /= POIDS_MUR;
-                mMatriceGraph[NumCase2 + mWidth][NumCase2] /= POIDS_MUR;
-            }
-            else
-            {
-                mMatriceGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
-                mMatriceGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
-                mMatriceGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
-                mMatriceGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
-            }
+             mMatriceGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
+             mMatriceGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
+             mMatriceGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
+             mMatriceGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
         }
     }
+}
+
+void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abDestroy = false)
+{
+   const bool bVertical = (0 == aWallDatas.Orientation.compare(string("V")));
+
+   if (bVertical && (aWallDatas.PositionY != mHeight))
+   {
+       if ((aWallDatas.PositionX != 0) && (aWallDatas.PositionX != mWidth))
+       {
+           int NumCase1 = aWallDatas.PositionX - 1 + aWallDatas.PositionY * mWidth;
+           int NumCase2 = aWallDatas.PositionX - 1 + (aWallDatas.PositionY + 1) * mWidth;
+
+           if (abDestroy)
+           {
+               mMatriceGraph[NumCase1][NumCase1 + 1] /= POIDS_MUR;
+               mMatriceGraph[NumCase1 + 1][NumCase1] /= POIDS_MUR;
+               mMatriceGraph[NumCase2][NumCase2 + 1] /= POIDS_MUR;
+               mMatriceGraph[NumCase2 + 1][NumCase2] /= POIDS_MUR;
+           }
+           else
+           {
+               mMatriceGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
+               mMatriceGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
+               mMatriceGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
+               mMatriceGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
+           }
+       }
+   }
+   else if ((false == bVertical) && (aWallDatas.PositionX != mWidth))
+   {
+       if ((aWallDatas.PositionY != 0) &&  (aWallDatas.PositionY != mHeight))
+       {
+           int NumCase1 = aWallDatas.PositionX + (aWallDatas.PositionY - 1) * mWidth;
+           int NumCase2 = aWallDatas.PositionX + 1 + (aWallDatas.PositionY - 1) * mWidth;
+
+           if (abDestroy)
+           {
+               mMatriceGraph[NumCase1][NumCase1 + mWidth] /= POIDS_MUR;
+               mMatriceGraph[NumCase1 + mWidth][NumCase1] /= POIDS_MUR;
+               mMatriceGraph[NumCase2][NumCase2 + mWidth] /= POIDS_MUR;
+               mMatriceGraph[NumCase2 + mWidth][NumCase2] /= POIDS_MUR;
+           }
+           else
+           {
+               mMatriceGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
+               mMatriceGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
+               mMatriceGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
+               mMatriceGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
+           }
+       }
+   }
 }
 
 /**
@@ -785,7 +818,7 @@ int main()
             cin >> wallX >> wallY >> wallOrientation; cin.ignore();
             
             WallsDatas.push_back ({wallX, wallY, wallOrientation});
-            IA.MiseAJourMatriceGraphe ({wallX, wallY, wallOrientation});
+            IA.AjoutMurMatriceGraphe ({wallX, wallY, wallOrientation});
         }
         
         IA.CalculCheminMinimaux ();
