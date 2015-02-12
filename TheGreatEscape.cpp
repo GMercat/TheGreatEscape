@@ -28,8 +28,8 @@ struct WallDatas
     string  Orientation;
 };
 
-#define POIDS_MUR               9999
-#define COEF_POIDS_CHEMIN       2
+const static double POIDS_MUR 			= 9999.0;
+const static double COEF_POIDS_CHEMIN 	= 1.1;
 
 /**
  * Classe de calcul du plus court chemin
@@ -62,9 +62,9 @@ private:
     const int mHeight;
     
     // Différentes matrices de calcul de plus court chemin
-    int **mMatriceGraph;
-    int **mMatriceGraphCalcul;
-    int **mCheminsMinimaux;
+    double **mMatriceGraph;
+    double **mMatriceGraphCalcul;
+    int    **mCheminsMinimaux;
 };
 
 CIA::CIA (const int aWidth, const int aHeight):
@@ -74,13 +74,13 @@ CIA::CIA (const int aWidth, const int aHeight):
     const int NbLigneColonne = mWidth * mHeight;
     
     // Allocation dynamique de la matrice du graph et des celle des chemins minimaux
-    mMatriceGraph = new int* [NbLigneColonne];
-    mMatriceGraphCalcul = new int* [NbLigneColonne];
+    mMatriceGraph = new double* [NbLigneColonne];
+    mMatriceGraphCalcul = new double* [NbLigneColonne];
     mCheminsMinimaux = new int* [NbLigneColonne];
     for (int IterLigne = 0; IterLigne < NbLigneColonne ; IterLigne++)
     {
-        mMatriceGraph[IterLigne] = new int[NbLigneColonne];
-        mMatriceGraphCalcul[IterLigne] = new int[NbLigneColonne];
+        mMatriceGraph[IterLigne] = new double[NbLigneColonne];
+        mMatriceGraphCalcul[IterLigne] = new double[NbLigneColonne];
         mCheminsMinimaux[IterLigne] = new int[NbLigneColonne];
     }
     
@@ -91,7 +91,7 @@ CIA::CIA (const int aWidth, const int aHeight):
         {
             if (IterLigne == IterColonne)
             {
-                mMatriceGraph[IterColonne][IterLigne] = 0;
+                mMatriceGraph[IterColonne][IterLigne] = 0.0;
             }
             else
             {
@@ -295,7 +295,7 @@ void CIA::CalculCheminMinimaux (void)
             }
             else
             {
-                mCheminsMinimaux[IterLigne][IterColonne] = POIDS_MUR;
+                mCheminsMinimaux[IterLigne][IterColonne] = -1;
             }
         }
     }
@@ -307,11 +307,11 @@ void CIA::CalculCheminMinimaux (void)
             {
                 for (int IterColonne = 0; IterColonne < mWidth * mHeight; ++IterColonne)
                 {
-                    int Cheminik = mMatriceGraphCalcul[IterLigne][IterInterm];
-                    int Cheminkj = mMatriceGraphCalcul[IterInterm][IterColonne];
+                    double Cheminik = mMatriceGraphCalcul[IterLigne][IterInterm];
+                    double Cheminkj = mMatriceGraphCalcul[IterInterm][IterColonne];
                     if ((Cheminik < POIDS_MUR) && (Cheminkj < POIDS_MUR))
                     {
-                        int Cheminij = Cheminik + Cheminkj;
+                        double Cheminij = Cheminik + Cheminkj;
                         if (Cheminij < mMatriceGraphCalcul[IterLigne][IterColonne])
                         {
                             mMatriceGraphCalcul[IterLigne][IterColonne] = Cheminij;
