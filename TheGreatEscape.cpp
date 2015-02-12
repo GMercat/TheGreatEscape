@@ -42,7 +42,7 @@ public:
     
     void    ConstruireMatriceGraphe       (void);
     void    AjoutMurMatriceGraphe         (const WallDatas& aWallDatas);
-    void    AjoutMurMatriceGrapheLite     (const WallDatas& aWallDatas, const bool abDestroy = false);
+    void    AjoutMurMatriceGrapheLite     (const WallDatas& aWallDatas, const bool abDestroy);
     bool    CalculPlusCourtCheminPlayer   (const PlayerDatas& aPlayersDatas, vector<int>& aOutPCC);
     void    CalculCheminMinimaux          (void);
     
@@ -549,7 +549,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
         
         if (bConstructible)
         {
-            AjoutMurMatriceGrapheLite (WallDatas);
+            AjoutMurMatriceGrapheLite (WallDatas, false);
             CalculCheminMinimaux ();
             vector<PlayerDatas>::const_iterator itPlayerDatas = aPlayersDatas.begin ();
             while (itPlayerDatas != aPlayersDatas.end () && bConstructible)
@@ -696,7 +696,6 @@ bool CIA::IsCheminPossible (const int aNumCaseDepart, const int aNumCaseArrivee)
 void CIA::AjoutMurMatriceGraphe (const WallDatas& aWallDatas)
 {
     const bool bVertical = (0 == aWallDatas.Orientation.compare(string("V")));
-    int NumCaseMax = mWidth * mHeight - 1;
     
     if (bVertical && (aWallDatas.PositionY != mHeight))
     {
@@ -726,9 +725,10 @@ void CIA::AjoutMurMatriceGraphe (const WallDatas& aWallDatas)
     }
 }
 
-void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abDestroy = false)
+void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abDestroy)
 {
    const bool bVertical = (0 == aWallDatas.Orientation.compare(string("V")));
+   int NumCaseMax = mWidth * mHeight - 1;
 
    if (bVertical && (aWallDatas.PositionY != mHeight))
    {
