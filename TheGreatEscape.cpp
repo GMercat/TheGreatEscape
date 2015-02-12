@@ -51,11 +51,11 @@ public:
 private:
     bool CalculPlusCourtChemin  (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin);
     
-    bool IsConstructibleVertical    (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY);
-    bool IsConstructibleHorizontal  (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY);
+    bool IsConstructibleVertical    (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY) const;
+    bool IsConstructibleHorizontal  (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY) const;
     
-    bool IsCheminPossiblePlayer (const PlayerDatas& aPlayersDatas);
-    bool IsCheminPossible       (const int aNumCaseDepart, const int aNumCaseArrivee);
+    bool IsCheminPossiblePlayer (const PlayerDatas& aPlayersDatas) const;
+    bool IsCheminPossible       (const int aNumCaseDepart, const int aNumCaseArrivee) const;
 private:
     const int mWidth;
     const int mHeight;
@@ -568,7 +568,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
     return WallBuilding;
 }
 
-bool CIA::IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY)
+bool CIA::IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY) const
 {
     bool bConstructible = true;
     
@@ -600,7 +600,7 @@ bool CIA::IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const i
     return bConstructible;
 }
 
-bool CIA::IsConstructibleHorizontal (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY)
+bool CIA::IsConstructibleHorizontal (const vector<WallDatas>& aWallsBuilt, const int aNewWallX, const int aNewWallY) const
 {
     bool bConstructible = true;
     
@@ -633,7 +633,7 @@ bool CIA::IsConstructibleHorizontal (const vector<WallDatas>& aWallsBuilt, const
 }
 
 
-bool CIA::IsCheminPossiblePlayer (const PlayerDatas& aPlayersDatas)
+bool CIA::IsCheminPossiblePlayer (const PlayerDatas& aPlayersDatas) const
 {
     bool bCheminExiste = false;
     
@@ -673,7 +673,7 @@ bool CIA::IsCheminPossiblePlayer (const PlayerDatas& aPlayersDatas)
     return bCheminExiste;
 }
 
-bool CIA::IsCheminPossible (const int aNumCaseDepart, const int aNumCaseArrivee)
+bool CIA::IsCheminPossible (const int aNumCaseDepart, const int aNumCaseArrivee) const
 {
     // Récupération du plus court chemin
     int NumCaseCourante = aNumCaseDepart;
