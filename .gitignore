@@ -2,9 +2,6 @@
 *~
 
 # Fichiers à la racine
-/.project
-/.cproject
-/.pydevproject
 /.gdbinit
 /.settings/
 /Debug*
