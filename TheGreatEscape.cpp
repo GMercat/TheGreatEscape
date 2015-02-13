@@ -29,7 +29,7 @@ struct WallDatas
 };
 
 const static double POIDS_MUR 			= 9999.0;
-const static double COEF_POIDS_CHEMIN 	= 1.1;
+const static double COEF_POIDS_CHEMIN 	= 1.2;
 
 /**
  * Classe de calcul du plus court chemin
@@ -295,7 +295,7 @@ void CIA::CalculCheminMinimaux (void)
             }
             else
             {
-                mCheminsMinimaux[IterLigne][IterColonne] = -1;
+                mCheminsMinimaux[IterLigne][IterColonne] = POIDS_MUR;
             }
         }
     }
@@ -935,8 +935,11 @@ int main()
         }
         
         string Action;
-        if ((IdPremierPlayer == myId) || (PlayersDatas[myId].WallsLeft == 0) || ((PlayersPCC[myId].size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2))
-            || (playerCount == 3))
+        bool bAvance =     (IdPremierPlayer == myId)    // Je suis le premier
+                        || (PlayersDatas[myId].WallsLeft == 0)  // Je n'ai plus de mur à construire
+                        || ((PlayersPCC[myId].size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2)) // Je suis aussi proche que le premier et on est à plus de 2 cases de l'arrivée
+                        || (playerCount == 3); // On est 3 joueurs
+        if (bAvance)
         {
             cerr << "G" << endl;
             Action = IA.GetNextDirection (PlayersPCC[myId]);
