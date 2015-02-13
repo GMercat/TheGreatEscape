@@ -61,6 +61,9 @@ public:
 private:
     bool CalculPlusCourtChemin  (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin);
     
+    bool BuildVerticalWall    (const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas);
+    bool BuildHorizontalWall  (const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas);
+
     bool IsConstructibleVertical    (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const;
     bool IsConstructibleHorizontal  (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const;
     
@@ -462,19 +465,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
            Coord CoordNewWall1 = {aPlusCourtChemin[iCase] % mWidth, aPlusCourtChemin[iCase] / mWidth};
            Coord CoordNewWall2 = {CoordNewWall1.X, CoordNewWall1.Y - 1};
 
-            bConstructible = IsConstructibleVertical (aWallsBuilt, CoordNewWall1);
-            if (bConstructible)
-            {
-               WallDatas = {CoordNewWall1, "V"};
-            }
-            else
-            {
-               bConstructible = IsConstructibleVertical (aWallsBuilt, CoordNewWall2);
-               if (bConstructible)
-               {
-                  WallDatas = {CoordNewWall2, "V"};
-               }
-            }
+           bConstructible = BuildVerticalWall (aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas);
         }
         // Si la prochaine case est celle de droite
         else if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] + 1))
@@ -482,19 +473,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
            Coord CoordNewWall1 = {aPlusCourtChemin[iCase] % mWidth + 1, aPlusCourtChemin[iCase] / mWidth};
            Coord CoordNewWall2 = {CoordNewWall1.X, CoordNewWall1.Y - 1};
 
-            bConstructible = IsConstructibleVertical (aWallsBuilt, CoordNewWall1);
-            if (bConstructible)
-            {
-                WallDatas = {CoordNewWall1, "V"};
-            }
-            else
-            {
-                bConstructible = IsConstructibleVertical (aWallsBuilt, CoordNewWall2);
-                if (bConstructible)
-                {
-                    WallDatas = {CoordNewWall2, "V"};
-                }
-            }
+           bConstructible = BuildVerticalWall (aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas);
         }
         // Si la prochaine case est celle du haut
         else if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] - mWidth))
@@ -502,19 +481,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
            Coord CoordNewWall1 = {aPlusCourtChemin[iCase] % mWidth, aPlusCourtChemin[iCase] / mWidth};
            Coord CoordNewWall2 = {CoordNewWall1.X - 1, CoordNewWall1.Y};
             
-            bConstructible = IsConstructibleHorizontal (aWallsBuilt, CoordNewWall1);
-            if (bConstructible)
-            {
-                WallDatas = {CoordNewWall1, "H"};
-            }
-            else
-            {
-                bConstructible = IsConstructibleHorizontal (aWallsBuilt, CoordNewWall2);
-                if (bConstructible)
-                {
-                    WallDatas = {CoordNewWall2, "H"};
-                }
-            }
+           bConstructible = BuildHorizontalWall (aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas);
         }
         // Si la prochaine case est celle du bas
         else if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] + mWidth))
@@ -522,19 +489,7 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
            Coord CoordNewWall1 = {aPlusCourtChemin[iCase] % mWidth, aPlusCourtChemin[iCase] / mWidth + 1};
            Coord CoordNewWall2 = {CoordNewWall1.X - 1, CoordNewWall1.Y};
             
-            bConstructible = IsConstructibleHorizontal (aWallsBuilt, CoordNewWall1);
-            if (bConstructible)
-            {
-                WallDatas = {CoordNewWall1, "H"};
-            }
-            else
-            {
-                bConstructible = IsConstructibleHorizontal (aWallsBuilt, CoordNewWall2);
-                if (bConstructible)
-                {
-                    WallDatas = {CoordNewWall2, "H"};
-                }
-            }
+           bConstructible = BuildHorizontalWall (aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas);
         }
         else
         {
@@ -569,6 +524,42 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
     }
 
     return WallBuilding;
+}
+
+bool CIA::BuildVerticalWall (const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas)
+{
+   bool bConstructible = IsConstructibleVertical (aWallsBuilt, aCoordWall1);
+   if (bConstructible)
+   {
+      aWallDatas = {aCoordWall1, "V"};
+   }
+   else
+   {
+      bConstructible = IsConstructibleVertical (aWallsBuilt, aCoordWall2);
+      if (bConstructible)
+      {
+         aWallDatas = {aCoordWall2, "V"};
+      }
+   }
+   return bConstructible;
+}
+
+bool CIA::BuildHorizontalWall (const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas)
+{
+   bool bConstructible = IsConstructibleHorizontal (aWallsBuilt, aCoordWall1);
+   if (bConstructible)
+   {
+      aWallDatas = {aCoordWall1, "H"};
+   }
+   else
+   {
+      bConstructible = IsConstructibleHorizontal (aWallsBuilt, aCoordWall2);
+      if (bConstructible)
+      {
+       aWallDatas = {aCoordWall2, "H"};
+      }
+   }
+   return bConstructible;
 }
 
 bool CIA::IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const
