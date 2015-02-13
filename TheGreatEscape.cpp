@@ -57,7 +57,7 @@ public:
     void    CalculCheminMinimaux          (void);
     
     string  GetNextDirection            (const vector<int>& aPlusCourtChemin);
-    string  BuildWall                   (const vector<PlayerDatas>& aPlayersDatas, const vector<int>& aPlusCourtChemin, const vector<WallDatas>& aWallsBuilt);
+    string  BuildWallInFrontOfPlayer    (const vector<PlayerDatas>& aPlayersDatas, const vector<int>& aPlusCourtChemin, const vector<WallDatas>& aWallsBuilt);
 
 private:
     bool CalculPlusCourtChemin  (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin);
@@ -449,7 +449,7 @@ string CIA::GetNextDirection (const vector<int>& aPlusCourtChemin)
     return Direction;
 }
 
-string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<int>& aPlusCourtChemin, const vector<WallDatas>& aWallsBuilt)
+string CIA::BuildWallInFrontOfPlayer (const vector<PlayerDatas>& aPlayersDatas, const vector<int>& aPlusCourtChemin, const vector<WallDatas>& aWallsBuilt)
 {
     string WallBuilding;
     
@@ -843,7 +843,7 @@ int main()
         //else
         {
             cerr << "B" << endl;
-            Action = IA.BuildWall (PlayersDatas, PlayersDatas[IdPremierPlayer].PCC, WallsDatas);
+            Action = IA.BuildWallInFrontOfPlayer (PlayersDatas, PlayersDatas[IdPremierPlayer].PCC, WallsDatas);
             
             if (Action.empty ())
             {
