@@ -26,6 +26,11 @@ struct WallDatas
     int     PositionX;
     int     PositionY;
     string  Orientation;
+
+    string ToString (void)
+    {
+    	return to_string(PositionX) + " " + to_string(PositionY) + " " + Orientation;
+    }
 };
 
 #define POIDS_MUR               9999
@@ -450,92 +455,88 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
         // Si la prochaine case est celle de gauche
         if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] - 1))
         {
-            int NewWallX = aPlusCourtChemin[iCase] % mWidth;
-            int NewWallY = aPlusCourtChemin[iCase] / mWidth;
-            
-            bConstructible = IsConstructibleVertical (aWallsBuilt, NewWallX, NewWallY);
+            int NewWall1X = aPlusCourtChemin[iCase] % mWidth;
+            int NewWall1Y = aPlusCourtChemin[iCase] / mWidth;
+            int NewWall2X = NewWall1X;
+            int NewWall2Y = NewWall1Y - 1;
+
+            bConstructible = IsConstructibleVertical (aWallsBuilt, NewWall1X, NewWall1Y);
             if (bConstructible)
             {
-                WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " V";
-                WallDatas = {NewWallX, NewWallY, "V"};
+                WallDatas = {NewWall1X, NewWall1Y, "V"};
             }
             else
             {
-                --NewWallY;
-                bConstructible = IsConstructibleVertical (aWallsBuilt, NewWallX, NewWallY);
+                bConstructible = IsConstructibleVertical (aWallsBuilt, NewWall2X, NewWall2Y);
                 if (bConstructible)
                 {
-                    WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " V";
-                    WallDatas = {NewWallX, NewWallY, "V"};
+                    WallDatas = {NewWall2X, NewWall2Y, "V"};
                 }
             }
         }
         // Si la prochaine case est celle de droite
         else if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] + 1))
         {
-            int NewWallX = aPlusCourtChemin[iCase] % mWidth + 1;
-            int NewWallY = aPlusCourtChemin[iCase] / mWidth;
-            
-            bConstructible = IsConstructibleVertical (aWallsBuilt, NewWallX, NewWallY);
+            int NewWall1X = aPlusCourtChemin[iCase] % mWidth + 1;
+            int NewWall1Y = aPlusCourtChemin[iCase] / mWidth;
+            int NewWall2X = NewWall1X;
+            int NewWall2Y = NewWall1Y - 1;
+
+            bConstructible = IsConstructibleVertical (aWallsBuilt, NewWall1X, NewWall1Y);
             if (bConstructible)
             {
-                WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " V";
-                WallDatas = {NewWallX, NewWallY, "V"};
+                WallDatas = {NewWall1X, NewWall1Y, "V"};
             }
             else
             {
-                --NewWallY;
-                bConstructible = IsConstructibleVertical (aWallsBuilt, NewWallX, NewWallY);
+                bConstructible = IsConstructibleVertical (aWallsBuilt, NewWall2X, NewWall2Y);
                 if (bConstructible)
                 {
-                    WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " V";
-                    WallDatas = {NewWallX, NewWallY, "V"};
+                    WallDatas = {NewWall2X, NewWall2Y, "V"};
                 }
             }
         }
         // Si la prochaine case est celle du haut
         else if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] - mWidth))
         {
-            int NewWallX = aPlusCourtChemin[iCase] % mWidth;
-            int NewWallY = aPlusCourtChemin[iCase] / mWidth;
+            int NewWall1X = aPlusCourtChemin[iCase] % mWidth;
+            int NewWall1Y = aPlusCourtChemin[iCase] / mWidth;
+            int NewWall2X = NewWall1X - 1;
+            int NewWall2Y = NewWall1Y;
             
-            bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWallX, NewWallY);
+            bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWall1X, NewWall1Y);
             if (bConstructible)
             {
-                WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " H";
-                WallDatas = {NewWallX, NewWallY, "H"};
+                WallDatas = {NewWall1X, NewWall1Y, "H"};
             }
             else
             {
-                --NewWallX;
-                bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWallX, NewWallY);
+                bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWall2X, NewWall2Y);
                 if (bConstructible)
                 {
-                    WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " H";
-                    WallDatas = {NewWallX, NewWallY, "H"};
+                    WallDatas = {NewWall2X, NewWall2Y, "H"};
                 }
             }
         }
         // Si la prochaine case est celle du bas
         else if (aPlusCourtChemin[iCaseNext] == (aPlusCourtChemin[iCase] + mWidth))
         {
-            int NewWallX = aPlusCourtChemin[iCase] % mWidth;
-            int NewWallY = aPlusCourtChemin[iCase] / mWidth + 1;
+            int NewWall1X = aPlusCourtChemin[iCase] % mWidth;
+            int NewWall1Y = aPlusCourtChemin[iCase] / mWidth + 1;
+            int NewWall2X = NewWall1X - 1;
+            int NewWall2Y = NewWall1Y;
             
-            bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWallX, NewWallY);
+            bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWall1X, NewWall1Y);
             if (bConstructible)
             {
-                WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " H";
-                WallDatas = {NewWallX, NewWallY, "H"};
+                WallDatas = {NewWall1X, NewWall1Y, "H"};
             }
             else
             {
-                --NewWallX;
-                bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWallX, NewWallY);
+                bConstructible = IsConstructibleHorizontal (aWallsBuilt, NewWall2X, NewWall2Y);
                 if (bConstructible)
                 {
-                    WallBuilding = to_string(NewWallX) + " " + to_string(NewWallY) + " H";
-                    WallDatas = {NewWallX, NewWallY, "H"};
+                    WallDatas = {NewWall2X, NewWall2Y, "H"};
                 }
             }
         }
@@ -560,6 +561,10 @@ string CIA::BuildWall (const vector<PlayerDatas>& aPlayersDatas, const vector<in
                 AjoutMurMatriceGrapheLite (WallDatas, true);
                 CalculCheminMinimaux ();
                 WallBuilding.clear ();
+            }
+            else
+            {
+            	WallBuilding = WallDatas.ToString ();
             }
         }
         
