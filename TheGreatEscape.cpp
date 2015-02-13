@@ -24,6 +24,7 @@ struct PlayerDatas
    EDirection  Direction;
    Coord       Position;
    int         WallsLeft;
+   vector<int> PCC;
 };
 
 struct WallDatas
@@ -52,7 +53,7 @@ public:
     void    ConstruireMatriceGraphe       (void);
     void    AjoutMurMatriceGraphe         (const WallDatas& aWallDatas);
     void    AjoutMurMatriceGrapheLite     (const WallDatas& aWallDatas, const bool abDestroy);
-    bool    CalculPlusCourtCheminPlayer   (const PlayerDatas& aPlayersDatas, vector<int>& aOutPCC);
+    bool    CalculPlusCourtCheminPlayer   (PlayerDatas& aPlayersDatas);
     void    CalculCheminMinimaux          (void);
     
     string  GetNextDirection            (const vector<int>& aPlusCourtChemin);
@@ -336,14 +337,14 @@ void CIA::CalculCheminMinimaux (void)
     }
 }
 
-bool CIA::CalculPlusCourtCheminPlayer (const PlayerDatas& aPlayersDatas, vector<int>& aOutPCC)
+bool CIA::CalculPlusCourtCheminPlayer (PlayerDatas& aPlayersDatas)
 {
     bool bReturn = false;
     if ((aPlayersDatas.Position.X == -1) || (aPlayersDatas.Position.Y == -1) || (aPlayersDatas.Direction == -1))
     {
         for (int i = 0; i < (mWidth * mHeight); ++i)
         {
-            aOutPCC.push_back (i);
+           aPlayersDatas.PCC.push_back (i);
         }
         bReturn = true;
     }
@@ -376,7 +377,7 @@ bool CIA::CalculPlusCourtCheminPlayer (const PlayerDatas& aPlayersDatas, vector<
             if (bReturn && (1 < PCC.size()) && (PCC.size() < DistanceMin))
             {
                 DistanceMin = PCC.size();
-                aOutPCC = PCC;
+                aPlayersDatas.PCC = PCC;
             }
         }
     }
@@ -819,44 +820,41 @@ int main()
         // To debug: cerr << "Debug messages..." << endl;
         int IdPremierPlayer = -1;
         unsigned int DistancePremierPlayer = 999;
-        vector< vector<int> > PlayersPCC;
         for (int i = 0; i < playerCount; i++)
         {
-            vector<int> PCC;
-            IA.CalculPlusCourtCheminPlayer (PlayersDatas[i], PCC);
-            PlayersPCC.push_back (PCC);
-            
-            if (PCC.size() < DistancePremierPlayer)
+            IA.CalculPlusCourtCheminPlayer (PlayersDatas[i]);
+
+            if (PlayersDatas[i].PCC.size() < DistancePremierPlayer)
             {
                 IdPremierPlayer = i;
-                DistancePremierPlayer = PCC.size();
+                DistancePremierPlayer = PlayersDatas[i].PCC.size();
                 
                 cerr << "IdPlayer1 = " << i << " (" << DistancePremierPlayer << ")" << endl;
             }
         }
         
         string Action;
-        if ((IdPremierPlayer == myId) || (PlayersDatas[myId].WallsLeft == 0) || ((PlayersPCC[myId].size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2)))
+        if ((IdPremierPlayer == myId) || (PlayersDatas[myId].WallsLeft == 0) || ((PlayersDatas[myId].PCC.size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2)))
         {
             cerr << "G" << endl;
-            Action = IA.GetNextDirection (PlayersPCC[myId]);
+            Action = IA.GetNextDirection (PlayersDatas[myId].PCC);
         }
         else if (DistancePremierPlayer <= 3)
         //else
         {
             cerr << "B" << endl;
-            Action = IA.BuildWall (PlayersDatas, PlayersPCC[IdPremierPlayer], WallsDatas);
+            Action = IA.BuildWall (PlayersDatas, PlayersDatas[IdPremierPlayer].PCC, WallsDatas);
             
             if (Action.empty ())
             {
-                Action = IA.GetNextDirection (PlayersPCC[myId]);
+                Action = IA.GetNextDirection (PlayersDatas[myId].PCC);
             }
         }
         else
         {
-            Action = IA.GetNextDirection (PlayersPCC[myId]);
+            Action = IA.GetNextDirection (PlayersDatas[myId].PCC);
         }
-        //Action = IA.GetNextDirection (PlayersPCC[myId]);
+
         cout << Action << endl; // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
     }
 }
