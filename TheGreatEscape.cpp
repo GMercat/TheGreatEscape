@@ -529,38 +529,109 @@ string CIA::BuildWallInFrontOfPlayer (const vector<PlayerDatas>& aPlayersDatas, 
 
 bool CIA::BuildVerticalWall (const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas)
 {
-   bool bConstructible = IsConstructibleVertical (aWallsBuilt, aCoordWall1);
-   if (bConstructible)
+   bool bConstructible1 = IsConstructibleVertical (aWallsBuilt, aCoordWall1);
+   bool bConstructible2 = IsConstructibleVertical (aWallsBuilt, aCoordWall2);
+   if (bConstructible1 && bConstructible2)
    {
-      aWallDatas = {aCoordWall1, "V"};
-   }
-   else
-   {
-      bConstructible = IsConstructibleVertical (aWallsBuilt, aCoordWall2);
-      if (bConstructible)
+      // TODO
+      WallDatas WallDatas1 = {aCoordWall1, "V"};
+      WallDatas WallDatas2 = {aCoordWall2, "V"};
+      unsigned int LengthPCC1 = 99;
+      unsigned int LengthPCC2 = 99;
+
+      // Calcul du nouveau PCC pour le joueur avec le Mur 1
+      AjoutMurMatriceGrapheLite (WallDatas1, false);
+      CalculCheminMinimaux ();
+      vector<PlayerDatas>::iterator itPlayerDatas = aPlayersDatas.begin ();
+      while (itPlayerDatas != aPlayersDatas.end () && bConstructible1)
+      {
+         bConstructible1 = CalculPlusCourtCheminPlayer (*itPlayerDatas);
+          ++itPlayerDatas;
+      }
+      if (bConstructible1)
+      {
+         LengthPCC1 = aPlayersDatas[aIdPlayer].PCC.size ();
+      }
+      AjoutMurMatriceGrapheLite (WallDatas1, true);
+      CalculCheminMinimaux ();
+
+      // Calcul du nouveau PCC pour le joueur avec le Mur 2
+      AjoutMurMatriceGrapheLite (WallDatas2, false);
+      CalculCheminMinimaux ();
+      vector<PlayerDatas>::iterator itPlayerDatas = aPlayersDatas.begin ();
+      while (itPlayerDatas != aPlayersDatas.end () && bConstructible2)
+      {
+         bConstructible2 = CalculPlusCourtCheminPlayer (*itPlayerDatas);
+          ++itPlayerDatas;
+      }
+      if (bConstructible2)
+      {
+         LengthPCC2 = aPlayersDatas[aIdPlayer].PCC.size ();
+      }
+      AjoutMurMatriceGrapheLite (WallDatas2, true);
+      CalculCheminMinimaux ();
+
+      // On Garde le meilleur
+      if (bConstructible1 && bConstructible2)
+      {
+         aWallDatas = {aCoordWall1, "V"};
+         if (LengthPCC2 < LengthPCC1)
+         {
+            aWallDatas = {aCoordWall2, "V"};
+         }
+      }
+      else if (bConstructible1)
+      {
+         aWallDatas = {aCoordWall1, "V"};
+      }
+      else if (bConstructible2)
       {
          aWallDatas = {aCoordWall2, "V"};
       }
    }
-   return bConstructible;
+   else if (bConstructible1)
+   {
+      // Calcul du nouveau PCC pour le joueur avec le Mur 1
+
+      aWallDatas = {aCoordWall1, "V"};
+   }
+   else if (bConstructible2)
+   {
+      // Calcul du nouveau PCC pour le joueur avec le Mur 2
+
+      aWallDatas = {aCoordWall2, "V"};
+   }
+   return bConstructible1 || bConstructible2;
 }
 
 bool CIA::BuildHorizontalWall (const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas)
 {
-   bool bConstructible = IsConstructibleHorizontal (aWallsBuilt, aCoordWall1);
-   if (bConstructible)
+   bool bConstructible1 = IsConstructibleHorizontal (aWallsBuilt, aCoordWall1);
+   bool bConstructible2 = IsConstructibleHorizontal (aWallsBuilt, aCoordWall2);
+   if (bConstructible1 && bConstructible2)
    {
+      // TODO
+      // Calcul du nouveau PCC pour le joueur avec le Mur 1
+
+      // Calcul du nouveau PCC pour le joueur avec le Mur 2
+
+      // On Garde le meilleur
       aWallDatas = {aCoordWall1, "H"};
    }
-   else
+   else if (bConstructible1)
    {
-      bConstructible = IsConstructibleHorizontal (aWallsBuilt, aCoordWall2);
-      if (bConstructible)
-      {
-       aWallDatas = {aCoordWall2, "H"};
-      }
+      // Calcul du nouveau PCC pour le joueur avec le Mur 1
+
+
+      aWallDatas = {aCoordWall1, "H"};
    }
-   return bConstructible;
+   else if (bConstructible2)
+   {
+      // Calcul du nouveau PCC pour le joueur avec le Mur 2
+
+      aWallDatas = {aCoordWall2, "H"};
+   }
+   return bConstructible1 || bConstructible2;
 }
 
 bool CIA::IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const
