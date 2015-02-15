@@ -907,6 +907,7 @@ int main()
     
     CPlayerDatas::Vector   PlayersDatas;
     vector<WallDatas>      WallsDatas;
+    bool                   bBuildingOn = false;
     
     CIA IA (w, h);
     
@@ -945,16 +946,23 @@ int main()
         
         // Write an action using cout. DON'T FORGET THE "<< endl"
         // To debug: cerr << "Debug messages..." << endl;
+
+        int    NbPlayerActif = 0;
+        bool   bAvance = true;
+        string Action;
+
         int IdPremierPlayer = -1;
         int IdDernierPlayer = -1;
         unsigned int DistancePremierPlayer = 999;
         unsigned int DistanceDernierPlayer = 0;
+
         for (int i = 0; i < playerCount; i++)
         {
             IA.CalculPlusCourtCheminPlayer (PlayersDatas[i]);
 
             if (PlayersDatas[i].Play ())
             {
+               ++NbPlayerActif;
                if ((PlayersDatas[i].GetPCC ().size() < DistancePremierPlayer))
                {
                   IdPremierPlayer = i;
@@ -968,26 +976,41 @@ int main()
             }
         }
         cerr << "F=" << IdPremierPlayer << " ,L=" << IdDernierPlayer << endl;
-        string Action;
-        if ((IdPremierPlayer == myId) || (PlayersDatas[myId].GetNbWallsLeft () == 0) || ((PlayersDatas[myId].GetPCC ().size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2)))
+
+        // 2 joueurs
+        if (NbPlayerActif == 2)
+        {
+           // Je ne peux plus construire de mur OU Je suis le premier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
+           bAvance =  (PlayersDatas[myId].GetNbWallsLeft () == 0);
+           bAvance |= (IdPremierPlayer == myId);
+           bAvance |= ((PlayersDatas[myId].GetPCC ().size () == (DistancePremierPlayer - Marge)) && (myId < IdPremierPlayer));
+           bAvance |= ((IdPremierPlayer != myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
+        }
+        // 3 joueurs
+        else if (NbPlayerActif == 3)
+        {
+           // Je ne peux plus construire de mur OU Je suis ne suis pas le dernier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
+           bAvance =  (PlayersDatas[myId].GetNbWallsLeft () == 0);
+           bAvance |= (IdDernierPlayer != myId);
+           bAvance |= ((PlayersDatas[myId].GetPCC ().size () == (DistanceDernierPlayer - Marge)) && (myId < IdDernierPlayer));
+           bAvance |= ((IdPremierPlayer != myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
+        }
+
+        if (bAvance)
         {
             cerr << "G" << endl;
             Action = IA.GetNextDirection (PlayersDatas[myId].GetPCC ());
         }
-        else if (DistancePremierPlayer <= 3)
-        //else
+        else
         {
             cerr << "B" << endl;
+            bBuildingOn = true;
             Action = IA.BuildWallInFrontOfPlayer (PlayersDatas, IdPremierPlayer, WallsDatas);
             
             if (Action.empty ())
             {
                 Action = IA.GetNextDirection (PlayersDatas[myId].GetPCC ());
             }
-        }
-        else
-        {
-            Action = IA.GetNextDirection (PlayersDatas[myId].GetPCC ());
         }
 
         cout << Action << endl; // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
