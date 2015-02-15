@@ -946,20 +946,28 @@ int main()
         // Write an action using cout. DON'T FORGET THE "<< endl"
         // To debug: cerr << "Debug messages..." << endl;
         int IdPremierPlayer = -1;
+        int IdDernierPlayer = -1;
         unsigned int DistancePremierPlayer = 999;
+        unsigned int DistanceDernierPlayer = 0;
         for (int i = 0; i < playerCount; i++)
         {
             IA.CalculPlusCourtCheminPlayer (PlayersDatas[i]);
 
-            if (PlayersDatas[i].Play () && (PlayersDatas[i].GetPCC ().size() < DistancePremierPlayer))
+            if (PlayersDatas[i].Play ())
             {
-                IdPremierPlayer = i;
-                DistancePremierPlayer = PlayersDatas[i].GetPCC ().size();
-                
-                cerr << "IdPlayer1 = " << i << " (" << DistancePremierPlayer << ")" << endl;
+               if ((PlayersDatas[i].GetPCC ().size() < DistancePremierPlayer))
+               {
+                  IdPremierPlayer = i;
+                  DistancePremierPlayer = PlayersDatas[i].GetPCC ().size();
+               }
+               else if (DistanceDernierPlayer < PlayersDatas[i].GetPCC ().size())
+               {
+                  IdDernierPlayer = i;
+                  DistanceDernierPlayer = PlayersDatas[i].GetPCC ().size();
+               }
             }
         }
-        
+        cerr << "F=" << IdPremierPlayer << " ,L=" << IdDernierPlayer << endl;
         string Action;
         if ((IdPremierPlayer == myId) || (PlayersDatas[myId].GetNbWallsLeft () == 0) || ((PlayersDatas[myId].GetPCC ().size () == (DistancePremierPlayer - Marge)) && (DistancePremierPlayer > 2)))
         {
