@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <algorithm>
 
 using namespace std;
@@ -34,20 +35,27 @@ struct WallDatas
 #define COEF_POIDS_CHEMIN       1
 
 static bool _bFirstWall = true;
-
+static int  _myId = -1; // id of my player (0 = 1st player, 1 = 2nd player, ...)
 
 class CPlayerDatas
 {
 public:
    typedef vector<CPlayerDatas> Vector;
+   typedef list<CPlayerDatas> List;
 public:
-   CPlayerDatas (const EDirection& aDirection,const Coord& aPosition, const int& aWallsLeft):
-      mDirection (aDirection),
-      mPosition  (aPosition),
-      mWallsLeft (aWallsLeft),
-      mbPlay     (true)
+   CPlayerDatas (const int& aId,const Coord& aPosition, const int& aWallsLeft):
+      mId         (aId),
+      mDirection  (static_cast<EDirection>(aId)),
+      mPosition   (aPosition),
+      mWallsLeft  (aWallsLeft),
+      mbPlay      (true)
    {};
    ~CPlayerDatas (void) {};
+
+   inline const int GetId (void) const
+   {
+      return mId;
+   };
 
    inline const EDirection GetDirection (void) const
    {
@@ -85,6 +93,7 @@ public:
    };
 
 private:
+   const int         mId;
    const EDirection  mDirection;
    const Coord       mPosition;
    const int         mWallsLeft;
@@ -92,6 +101,29 @@ private:
    bool              mbPlay;
    vector<int>       mPCC;
 };
+
+bool ComparePlayer (const CPlayerDatas& aPlayer1, const CPlayerDatas& aPlayer2)
+{
+   bool bReturn = false;
+   if (aPlayer1.GetPCC ().size () < aPlayer2.GetPCC ().size ()) {
+      bReturn = true;
+   }
+   else if (aPlayer1.GetPCC ().size () == aPlayer2.GetPCC ().size ()) {
+      if (_myId == aPlayer1.GetId ()) {
+         bReturn = true;
+      }
+      else if (_myId == aPlayer2.GetId ()) {
+         bReturn = false;
+      }
+      else {
+         if ((_myId < aPlayer1.GetId ()) || (aPlayer1.GetId () == 0)) {
+            bReturn = true;
+         }
+      }
+   }
+   return bReturn;
+}
+
 
 /**
  * Classe de calcul du plus court chemin
@@ -984,10 +1016,10 @@ int main()
     int w; // width of the board
     int h; // height of the board
     int playerCount; // number of players (2 or 3)
-    int myId; // id of my player (0 = 1st player, 1 = 2nd player, ...)
-    cin >> w >> h >> playerCount >> myId; cin.ignore();
+    cin >> w >> h >> playerCount >> _myId; cin.ignore();
     
     CPlayerDatas::Vector   PlayersDatas;
+    CPlayerDatas::List     PlayersDatasOrdonnes;
     vector<WallDatas>      WallsDatas;
     bool                   bBuildingOn = false;
 
@@ -1001,6 +1033,7 @@ int main()
         unsigned int Marge = playerCount - 1;
         Marge = 0;
         PlayersDatas.clear ();
+        PlayersDatasOrdonnes.clear();
         WallsDatas.clear ();
         for (int i = 0; i < playerCount; i++)
         {
@@ -1009,7 +1042,8 @@ int main()
             int wallsLeft; // number of walls available for the player
             cin >> x >> y >> wallsLeft; cin.ignore();
             cerr << x << " " << y << " " << wallsLeft << endl;
-            PlayersDatas.push_back (CPlayerDatas(static_cast<EDirection>(i), Coord{x, y}, wallsLeft));
+            PlayersDatas.push_back (CPlayerDatas(i, Coord{x, y}, wallsLeft));
+            PlayersDatasOrdonnes.push_back (CPlayerDatas(static_cast<EDirection>(i), Coord{x, y}, wallsLeft));
         }
         int wallCount; // number of walls on the board
         cin >> wallCount; cin.ignore();
@@ -1059,30 +1093,46 @@ int main()
         }
         cerr << "F=" << IdPremierPlayer << " ,L=" << IdDernierPlayer << endl;
 
+        CPlayerDatas::List::iterator ItPlayerOrdonnes;
+        for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
+             ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
+             ++ItPlayerOrdonnes)
+        {
+           IA.CalculPlusCourtCheminPlayer (*ItPlayerOrdonnes);
+        }
+        PlayersDatasOrdonnes.sort (ComparePlayer);
+        for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
+            ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
+            ++ItPlayerOrdonnes)
+        {
+            cerr << "[" << ItPlayerOrdonnes->GetId () << "] (" << ItPlayerOrdonnes->GetPCC ().size() << ") ";
+        }
+        cerr << endl;
+
         // 2 joueurs
         if (NbPlayerActif == 2)
         {
            // Je ne peux plus construire de mur OU Je suis le premier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
-           bAvance =  (PlayersDatas[myId].GetNbWallsLeft () == 0);
-           bAvance |= (IdPremierPlayer == myId);
-           bAvance |= (PlayersDatas[myId].GetPCC ().size () == (DistancePremierPlayer - Marge));
-           bAvance |= ((IdPremierPlayer != myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
+           bAvance =  (PlayersDatas[_myId].GetNbWallsLeft () == 0);
+           bAvance |= (IdPremierPlayer == _myId);
+           bAvance |= (PlayersDatas[_myId].GetPCC ().size () == (DistancePremierPlayer - Marge));
+           bAvance |= ((IdPremierPlayer != _myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
         }
         // 3 joueurs
         else if (NbPlayerActif == 3)
         {
            // Je ne peux plus construire de mur OU Je suis ne suis pas le dernier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
-           bAvance =  (PlayersDatas[myId].GetNbWallsLeft () == 0);
-           bAvance |= (IdDernierPlayer != myId);
-           bAvance |= ((IdDernierPlayer != myId) && (PlayersDatas[myId].GetPCC ().size () == (DistanceDernierPlayer - Marge)));
-           bAvance |= ((IdPremierPlayer != myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
-           bAvance |= (IdDernierPlayer != myId) && (IdPremierPlayer != myId) && (PlayersDatas[IdDernierPlayer].GetNbWallsLeft () != 0);
+           bAvance =  (PlayersDatas[_myId].GetNbWallsLeft () == 0);
+           bAvance |= (IdDernierPlayer != _myId);
+           bAvance |= ((IdDernierPlayer != _myId) && (PlayersDatas[_myId].GetPCC ().size () == (DistanceDernierPlayer - Marge)));
+           bAvance |= ((IdPremierPlayer != _myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
+           bAvance |= (IdDernierPlayer != _myId) && (IdPremierPlayer != _myId) && (PlayersDatas[IdDernierPlayer].GetNbWallsLeft () != 0);
         }
 
         if (bAvance)
         {
             cerr << "G" << endl;
-            Action = IA.GetNextDirection (PlayersDatas[myId].GetPCC ());
+            Action = IA.GetNextDirection (PlayersDatas[_myId].GetPCC ());
         }
         else
         {
@@ -1090,10 +1140,23 @@ int main()
             bBuildingOn = true;
             Action = IA.BuildWallInFrontOfPlayer (PlayersDatas, IdPremierPlayer, WallsDatas);
             
+//            if (Action.empty () && (NbPlayerActif == 2))
             if (Action.empty ())
             {
-                Action = IA.GetNextDirection (PlayersDatas[myId].GetPCC ());
+                Action = IA.GetNextDirection (PlayersDatas[_myId].GetPCC ());
             }
+//            else if (Action.empty () && (NbPlayerActif == 3) && (_myId == IdDernierPlayer))
+//            {
+//               Action = IA.BuildWallInFrontOfPlayer (PlayersDatas, IdDeuxiemePlayer, WallsDatas);
+//               if (Action.empty ())
+//               {
+//                   Action = IA.GetNextDirection (PlayersDatas[_myId].GetPCC ());
+//               }
+//               else
+//               {
+//                  _bFirstWall = false;
+//               }
+//            }
             else
             {
                _bFirstWall = false;
