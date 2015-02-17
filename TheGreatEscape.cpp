@@ -52,43 +52,43 @@ public:
    {};
    ~CPlayerDatas (void) {};
 
-   inline const int GetId (void) const
-   {
+   inline bool operator== (const CPlayerDatas& aPlayer) {
+         return (mId == aPlayer.mId);
+   };
+
+   inline bool operator!= (const CPlayerDatas& aPlayer) {
+      return (mId != aPlayer.mId);
+   };
+
+   inline const int GetId (void) const {
       return mId;
    };
 
-   inline const EDirection GetDirection (void) const
-   {
+   inline const EDirection GetDirection (void) const {
       return mDirection;
    };
 
-   inline const Coord GetPosition (void) const
-   {
+   inline const Coord GetPosition (void) const {
       return mPosition;
    };
 
-   inline const int GetNbWallsLeft (void) const
-   {
+   inline const int GetNbWallsLeft (void) const {
       return mWallsLeft;
    };
 
-   inline const vector<int>& GetPCC (void) const
-   {
+   inline const vector<int>& GetPCC (void) const {
       return mPCC;
    };
 
-   inline void SetPCC (const vector<int>& aPCC)
-   {
+   inline void SetPCC (const vector<int>& aPCC) {
       mPCC = aPCC;
    };
 
-   inline bool Play (void) const
-   {
+   inline bool Play (void) const {
       return mbPlay;
    };
 
-   inline void SetOut (void)
-   {
+   inline void SetOut (void) {
       mbPlay = false;
    };
 
@@ -141,15 +141,15 @@ public:
     void    CalculCheminMinimaux          (void);
     
     string  GetNextDirection            (const vector<int>& aPlusCourtChemin);
-    string  BuildWallInFrontOfPlayer    (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const vector<WallDatas>& aWallsBuilt);
+    string  BuildWallInFrontOfPlayer    (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt);
 
 private:
     bool CalculPlusCourtChemin  (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin);
     
-    bool BuildVerticalWall    (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC);
-    bool BuildHorizontalWall  (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC);
+    bool BuildVerticalWall    (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC);
+    bool BuildHorizontalWall  (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC);
 
-    bool ChercheNewPCCPlayer (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC);
+    bool ChercheNewPCCPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC);
     void SelectionneBestWall (const CPlayerDatas& aPlayerDatas, const bool& abConstructible1, const WallDatas& aWallDatas1, const unsigned int& aLengthPCC1, const bool& abConstructible2, const WallDatas& aWallDatas2, const unsigned int& aLengthPCC2, WallDatas& aBestWallDatas, unsigned int& aLengthBestPCC);
 
     bool IsConstructibleVertical    (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const;
@@ -427,45 +427,37 @@ void CIA::CalculCheminMinimaux (void)
 bool CIA::CalculPlusCourtCheminPlayer (CPlayerDatas& aPlayersDatas)
 {
    bool bReturn = false;
-   if ((aPlayersDatas.GetPosition ().X == -1) || (aPlayersDatas.GetPosition ().Y == -1) || (aPlayersDatas.GetDirection () == -1))
+   vector<int> CasesArrivees;
+   switch (aPlayersDatas.GetDirection ())
    {
-      aPlayersDatas.SetOut ();
-      bReturn = true;
+      case eRight:
+         for (int i=0; i<mHeight; ++i)
+            CasesArrivees.push_back ((mWidth - 1) + i * mWidth);
+         break;
+      case eLeft:
+         for (int i=0; i<mHeight; ++i)
+            CasesArrivees.push_back (i * mWidth);
+         break;
+      case eDown:
+         for (int i=0; i<mWidth; ++i)
+            CasesArrivees.push_back (i + (mHeight - 1) * mWidth);
+         break;
+      case eUp:
+      default:
+         break;
    }
-   else
+   unsigned int DistanceMin = 99;
+   for (unsigned int i=0; i < CasesArrivees.size();++i)
    {
-      vector<int> CasesArrivees;
-      switch (aPlayersDatas.GetDirection ())
+      vector<int> PCC;
+      bReturn = CalculPlusCourtChemin (aPlayersDatas.GetPosition ().X + aPlayersDatas.GetPosition ().Y * mWidth, CasesArrivees[i], PCC);
+      if (bReturn && (1 < PCC.size()) && (PCC.size() < DistanceMin))
       {
-         case eRight:
-            for (int i=0; i<mHeight; ++i)
-               CasesArrivees.push_back ((mWidth - 1) + i * mWidth);
-            break;
-         case eLeft:
-            for (int i=0; i<mHeight; ++i)
-               CasesArrivees.push_back (i * mWidth);
-            break;
-         case eDown:
-            for (int i=0; i<mWidth; ++i)
-               CasesArrivees.push_back (i + (mHeight - 1) * mWidth);
-            break;
-         case eUp:
-         default:
-            break;
-      }
-      unsigned int DistanceMin = 99;
-      for (unsigned int i=0; i < CasesArrivees.size();++i)
-      {
-         vector<int> PCC;
-         bReturn = CalculPlusCourtChemin (aPlayersDatas.GetPosition ().X + aPlayersDatas.GetPosition ().Y * mWidth, CasesArrivees[i], PCC);
-         if (bReturn && (1 < PCC.size()) && (PCC.size() < DistanceMin))
-         {
-            DistanceMin = PCC.size();
-            aPlayersDatas.SetPCC (PCC);
-         }
+         DistanceMin = PCC.size();
+         aPlayersDatas.SetPCC (PCC);
       }
    }
-   return bReturn;
+   return (DistanceMin != 99);
 }
 
 bool CIA::CalculPlusCourtChemin (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin)
@@ -531,9 +523,9 @@ string CIA::GetNextDirection (const vector<int>& aPlusCourtChemin)
     return Direction;
 }
 
-string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const vector<WallDatas>& aWallsBuilt)
+string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt)
 {
-   const vector<int> PCCPlayer = aPlayersDatas[aIdPlayer].GetPCC ();
+   const vector<int> PCCPlayer = aPlayer.GetPCC ();
 
    string         WallBuilding;
    WallDatas      BestWallDatas;
@@ -552,7 +544,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::Vector& aPlayersDatas, const
          Coord CoordNewWall1 = {PCCPlayer[iCase] % mWidth, PCCPlayer[iCase] / mWidth};
          Coord CoordNewWall2 = {CoordNewWall1.X, CoordNewWall1.Y - 1};
 
-         bConstructible = BuildVerticalWall (aPlayersDatas, aIdPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
+         bConstructible = BuildVerticalWall (aPlayersDatas, aPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
       }
       // Si la prochaine case est celle de droite
       else if (PCCPlayer[iCaseNext] == (PCCPlayer[iCase] + 1))
@@ -560,7 +552,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::Vector& aPlayersDatas, const
          Coord CoordNewWall1 = {PCCPlayer[iCase] % mWidth + 1, PCCPlayer[iCase] / mWidth};
          Coord CoordNewWall2 = {CoordNewWall1.X, CoordNewWall1.Y - 1};
 
-         bConstructible = BuildVerticalWall (aPlayersDatas, aIdPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
+         bConstructible = BuildVerticalWall (aPlayersDatas, aPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
       }
       // Si la prochaine case est celle du haut
       else if (PCCPlayer[iCaseNext] == (PCCPlayer[iCase] - mWidth))
@@ -568,7 +560,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::Vector& aPlayersDatas, const
          Coord CoordNewWall1 = {PCCPlayer[iCase] % mWidth, PCCPlayer[iCase] / mWidth};
          Coord CoordNewWall2 = {CoordNewWall1.X - 1, CoordNewWall1.Y};
 
-         bConstructible = BuildHorizontalWall (aPlayersDatas, aIdPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
+         bConstructible = BuildHorizontalWall (aPlayersDatas, aPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
       }
       // Si la prochaine case est celle du bas
       else if (PCCPlayer[iCaseNext] == (PCCPlayer[iCase] + mWidth))
@@ -576,14 +568,14 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::Vector& aPlayersDatas, const
          Coord CoordNewWall1 = {PCCPlayer[iCase] % mWidth, PCCPlayer[iCase] / mWidth + 1};
          Coord CoordNewWall2 = {CoordNewWall1.X - 1, CoordNewWall1.Y};
 
-         bConstructible = BuildHorizontalWall (aPlayersDatas, aIdPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
+         bConstructible = BuildHorizontalWall (aPlayersDatas, aPlayer, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC);
       }
 
       if (bConstructible)
       {
 //         cerr << "Mur " << WallDatas.ToString () << " L=" << LengthPCC << " (constructible)" << endl;
 
-         if (LengthBestWall <= LengthPCC)
+         if (LengthBestWall < LengthPCC)
          {
 //            cerr << "Best" << endl;
             LengthBestWall = LengthPCC;
@@ -596,7 +588,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::Vector& aPlayersDatas, const
    return WallBuilding;
 }
 
-bool CIA::BuildVerticalWall (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC)
+bool CIA::BuildVerticalWall (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC)
 {
    bool bConstructible1 = IsConstructibleVertical (aWallsBuilt, aCoordWall1);
    bool bConstructible2 = IsConstructibleVertical (aWallsBuilt, aCoordWall2);
@@ -609,18 +601,18 @@ bool CIA::BuildVerticalWall (CPlayerDatas::Vector& aPlayersDatas, const int& aId
    if (bConstructible1 && bConstructible2)
    {
       // Calcul du nouveau PCC pour le joueur avec le Mur 1
-      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas1, LengthPCC1);
+      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas1, LengthPCC1);
 
       // Calcul du nouveau PCC pour le joueur avec le Mur 2
-      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas2, LengthPCC2);
+      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas2, LengthPCC2);
 
       // On sélectionne le meilleur
-      SelectionneBestWall (aPlayersDatas[aIdPlayer], bConstructible1, WallDatas1, LengthPCC1, bConstructible2, WallDatas2, LengthPCC2, aWallDatas, aLengthPCC);
+      SelectionneBestWall (aPlayer, bConstructible1, WallDatas1, LengthPCC1, bConstructible2, WallDatas2, LengthPCC2, aWallDatas, aLengthPCC);
    }
    else if (bConstructible1)
    {
       // Calcul du nouveau PCC pour le joueur avec le Mur 1
-      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas1, LengthPCC1);
+      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas1, LengthPCC1);
 
       if (bConstructible1)
       {
@@ -631,7 +623,7 @@ bool CIA::BuildVerticalWall (CPlayerDatas::Vector& aPlayersDatas, const int& aId
    else if (bConstructible2)
    {
       // Calcul du nouveau PCC pour le joueur avec le Mur 2
-      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas2, LengthPCC2);
+      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas2, LengthPCC2);
 
       if (bConstructible2)
       {
@@ -642,7 +634,7 @@ bool CIA::BuildVerticalWall (CPlayerDatas::Vector& aPlayersDatas, const int& aId
    return bConstructible1 || bConstructible2;
 }
 
-bool CIA::BuildHorizontalWall (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC)
+bool CIA::BuildHorizontalWall (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC)
 {
    bool bConstructible1 = IsConstructibleHorizontal (aWallsBuilt, aCoordWall1);
    bool bConstructible2 = IsConstructibleHorizontal (aWallsBuilt, aCoordWall2);
@@ -655,18 +647,18 @@ bool CIA::BuildHorizontalWall (CPlayerDatas::Vector& aPlayersDatas, const int& a
    if (bConstructible1 && bConstructible2)
    {
       // Calcul du nouveau PCC pour le joueur avec le Mur 1
-      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas1, LengthPCC1);
+      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas1, LengthPCC1);
 
       // Calcul du nouveau PCC pour le joueur avec le Mur 2
-      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas2, LengthPCC2);
+      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas2, LengthPCC2);
 
       // On Garde le meilleur
-      SelectionneBestWall (aPlayersDatas[aIdPlayer], bConstructible1, WallDatas1, LengthPCC1, bConstructible2, WallDatas2, LengthPCC2, aWallDatas, aLengthPCC);
+      SelectionneBestWall (aPlayer, bConstructible1, WallDatas1, LengthPCC1, bConstructible2, WallDatas2, LengthPCC2, aWallDatas, aLengthPCC);
    }
    else if (bConstructible1)
    {
       // Calcul du nouveau PCC pour le joueur avec le Mur 1
-      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas1, LengthPCC1);
+      bConstructible1 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas1, LengthPCC1);
 
       if (bConstructible1)
       {
@@ -677,7 +669,7 @@ bool CIA::BuildHorizontalWall (CPlayerDatas::Vector& aPlayersDatas, const int& a
    else if (bConstructible2)
    {
       // Calcul du nouveau PCC pour le joueur avec le Mur 2
-      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aIdPlayer, WallDatas2, LengthPCC2);
+      bConstructible2 = ChercheNewPCCPlayer (aPlayersDatas, aPlayer, WallDatas2, LengthPCC2);
 
       if (bConstructible2)
       {
@@ -688,12 +680,12 @@ bool CIA::BuildHorizontalWall (CPlayerDatas::Vector& aPlayersDatas, const int& a
    return bConstructible1 || bConstructible2;
 }
 
-bool CIA::ChercheNewPCCPlayer (CPlayerDatas::Vector& aPlayersDatas, const int& aIdPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC)
+bool CIA::ChercheNewPCCPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC)
 {
    bool bConstructible = true;
    AjoutMurMatriceGrapheLite (aWallDatas, false);
    CalculCheminMinimaux ();
-   CPlayerDatas::Vector::iterator itPlayerDatas = aPlayersDatas.begin ();
+   CPlayerDatas::List::iterator itPlayerDatas = aPlayersDatas.begin ();
    while (itPlayerDatas != aPlayersDatas.end () && bConstructible)
    {
       bConstructible = CalculPlusCourtCheminPlayer (*itPlayerDatas);
@@ -701,7 +693,7 @@ bool CIA::ChercheNewPCCPlayer (CPlayerDatas::Vector& aPlayersDatas, const int& a
    }
    if (bConstructible)
    {
-      aLengthPCC = aPlayersDatas[aIdPlayer].GetPCC ().size ();
+      aLengthPCC = aPlayer.GetPCC ().size ();
    }
    AjoutMurMatriceGrapheLite (aWallDatas, true);
    CalculCheminMinimaux ();
@@ -1013,156 +1005,123 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
  **/
 int main()
 {
-    int w; // width of the board
-    int h; // height of the board
-    int playerCount; // number of players (2 or 3)
-    cin >> w >> h >> playerCount >> _myId; cin.ignore();
-    
-    CPlayerDatas::Vector   PlayersDatas;
-    CPlayerDatas::List     PlayersDatasOrdonnes;
-    vector<WallDatas>      WallsDatas;
-    bool                   bBuildingOn = false;
+   int w; // width of the board
+   int h; // height of the board
+   int playerCount; // number of players (2 or 3)
+   cin >> w >> h >> playerCount >> _myId; cin.ignore();
 
-    CIA IA (w, h);
-    
-    // game loop
-    while (1)
-    {
-        IA.ConstruireMatriceGraphe ();
+   CPlayerDatas::List     PlayersDatasOrdonnes;
+   vector<WallDatas>      WallsDatas;
+   bool                   bBuildingOn = false;
 
-        unsigned int Marge = playerCount - 1;
-        Marge = 0;
-        PlayersDatas.clear ();
-        PlayersDatasOrdonnes.clear();
-        WallsDatas.clear ();
-        for (int i = 0; i < playerCount; i++)
-        {
-            int x; // x-coordinate of the player
-            int y; // y-coordinate of the player
-            int wallsLeft; // number of walls available for the player
-            cin >> x >> y >> wallsLeft; cin.ignore();
-            cerr << x << " " << y << " " << wallsLeft << endl;
-            PlayersDatas.push_back (CPlayerDatas(i, Coord{x, y}, wallsLeft));
+   CIA IA (w, h);
+
+   // game loop
+   while (1) {
+      IA.ConstruireMatriceGraphe ();
+
+      unsigned int Marge = playerCount - 1;
+      Marge = 0;
+      PlayersDatasOrdonnes.clear();
+      WallsDatas.clear ();
+      for (int i = 0; i < playerCount; i++) {
+         int x; // x-coordinate of the player
+         int y; // y-coordinate of the player
+         int wallsLeft; // number of walls available for the player
+         cin >> x >> y >> wallsLeft; cin.ignore();
+         cerr << x << " " << y << " " << wallsLeft << endl;
+
+         if ((x != -1) && (y != -1) && (wallsLeft != -1)) {
             PlayersDatasOrdonnes.push_back (CPlayerDatas(static_cast<EDirection>(i), Coord{x, y}, wallsLeft));
-        }
-        int wallCount; // number of walls on the board
-        cin >> wallCount; cin.ignore();
-        for (int i = 0; i < wallCount; i++)
-        {
-            int wallX; // x-coordinate of the wall
-            int wallY; // y-coordinate of the wall
-            string wallOrientation; // wall orientation ('H' or 'V')
-            cin >> wallX >> wallY >> wallOrientation; cin.ignore();
-            
-            WallsDatas.push_back ({wallX, wallY, wallOrientation});
-            IA.AjoutMurMatriceGraphe ({wallX, wallY, wallOrientation});
-        }
-        
-        IA.CalculCheminMinimaux ();
-        
-        // Write an action using cout. DON'T FORGET THE "<< endl"
-        // To debug: cerr << "Debug messages..." << endl;
+         }
+      }
+      int wallCount; // number of walls on the board
+      cin >> wallCount; cin.ignore();
+      for (int i = 0; i < wallCount; i++) {
+         int wallX; // x-coordinate of the wall
+         int wallY; // y-coordinate of the wall
+         string wallOrientation; // wall orientation ('H' or 'V')
+         cin >> wallX >> wallY >> wallOrientation; cin.ignore();
 
-        int    NbPlayerActif = 0;
-        bool   bAvance = true;
-        string Action;
+         WallsDatas.push_back ({wallX, wallY, wallOrientation});
+         IA.AjoutMurMatriceGraphe ({wallX, wallY, wallOrientation});
+      }
 
-        int IdPremierPlayer = -1;
-        int IdDernierPlayer = -1;
-        unsigned int DistancePremierPlayer = 999;
-        unsigned int DistanceDernierPlayer = 0;
+      IA.CalculCheminMinimaux ();
 
-        for (int i = 0; i < playerCount; i++)
-        {
-            IA.CalculPlusCourtCheminPlayer (PlayersDatas[i]);
+      // Write an action using cout. DON'T FORGET THE "<< endl"
+      // To debug: cerr << "Debug messages..." << endl;
 
-            if (PlayersDatas[i].Play ())
-            {
-               ++NbPlayerActif;
-               if ((PlayersDatas[i].GetPCC ().size() < DistancePremierPlayer))
-               {
-                  IdPremierPlayer = i;
-                  DistancePremierPlayer = PlayersDatas[i].GetPCC ().size();
-               }
-               else if (DistanceDernierPlayer < PlayersDatas[i].GetPCC ().size())
-               {
-                  IdDernierPlayer = i;
-                  DistanceDernierPlayer = PlayersDatas[i].GetPCC ().size();
-               }
-            }
-        }
-        cerr << "F=" << IdPremierPlayer << " ,L=" << IdDernierPlayer << endl;
+      bool   bAvance = true;
+      string Action;
 
-        CPlayerDatas::List::iterator ItPlayerOrdonnes;
-        for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
-             ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
-             ++ItPlayerOrdonnes)
-        {
-           IA.CalculPlusCourtCheminPlayer (*ItPlayerOrdonnes);
-        }
-        PlayersDatasOrdonnes.sort (ComparePlayer);
-        for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
-            ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
-            ++ItPlayerOrdonnes)
-        {
-            cerr << "[" << ItPlayerOrdonnes->GetId () << "] (" << ItPlayerOrdonnes->GetPCC ().size() << ") ";
-        }
-        cerr << endl;
+      CPlayerDatas::List::iterator ItPlayerOrdonnes;
+      for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
+           ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
+           ++ItPlayerOrdonnes) {
+         IA.CalculPlusCourtCheminPlayer (*ItPlayerOrdonnes);
+      }
+      PlayersDatasOrdonnes.sort (ComparePlayer);
 
-        // 2 joueurs
-        if (NbPlayerActif == 2)
-        {
-           // Je ne peux plus construire de mur OU Je suis le premier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
-           bAvance =  (PlayersDatas[_myId].GetNbWallsLeft () == 0);
-           bAvance |= (IdPremierPlayer == _myId);
-           bAvance |= (PlayersDatas[_myId].GetPCC ().size () == (DistancePremierPlayer - Marge));
-           bAvance |= ((IdPremierPlayer != _myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
-        }
-        // 3 joueurs
-        else if (NbPlayerActif == 3)
-        {
-           // Je ne peux plus construire de mur OU Je suis ne suis pas le dernier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
-           bAvance =  (PlayersDatas[_myId].GetNbWallsLeft () == 0);
-           bAvance |= (IdDernierPlayer != _myId);
-           bAvance |= ((IdDernierPlayer != _myId) && (PlayersDatas[_myId].GetPCC ().size () == (DistanceDernierPlayer - Marge)));
-           bAvance |= ((IdPremierPlayer != _myId) && ((DistancePremierPlayer > 2) && !bBuildingOn));
-           bAvance |= (IdDernierPlayer != _myId) && (IdPremierPlayer != _myId) && (PlayersDatas[IdDernierPlayer].GetNbWallsLeft () != 0);
-        }
+      /*
+      for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
+           ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
+           ++ItPlayerOrdonnes)
+      {
+         cerr << "[" << ItPlayerOrdonnes->GetId () << "] (" << ItPlayerOrdonnes->GetPCC ().size() << ") ";
+      }
+      cerr << endl;*/
 
-        if (bAvance)
-        {
-            cerr << "G" << endl;
-            Action = IA.GetNextDirection (PlayersDatas[_myId].GetPCC ());
-        }
-        else
-        {
-            cerr << "B" << endl;
-            bBuildingOn = true;
-            Action = IA.BuildWallInFrontOfPlayer (PlayersDatas, IdPremierPlayer, WallsDatas);
-            
-//            if (Action.empty () && (NbPlayerActif == 2))
-            if (Action.empty ())
-            {
-                Action = IA.GetNextDirection (PlayersDatas[_myId].GetPCC ());
-            }
-//            else if (Action.empty () && (NbPlayerActif == 3) && (_myId == IdDernierPlayer))
-//            {
-//               Action = IA.BuildWallInFrontOfPlayer (PlayersDatas, IdDeuxiemePlayer, WallsDatas);
-//               if (Action.empty ())
-//               {
-//                   Action = IA.GetNextDirection (PlayersDatas[_myId].GetPCC ());
-//               }
-//               else
-//               {
-//                  _bFirstWall = false;
-//               }
-//            }
-            else
-            {
-               _bFirstWall = false;
-            }
-        }
+      CPlayerDatas::List::iterator Me;
+      for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
+           ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
+           ++ItPlayerOrdonnes) {
+         if (ItPlayerOrdonnes->GetId() == _myId) {
+            Me = ItPlayerOrdonnes;
+         }
+      }
 
-        cout << Action << endl; // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
-    }
+      // 2 joueurs
+      if (PlayersDatasOrdonnes.size () == 2) {
+         // Je ne peux plus construire de mur OU Je suis le premier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
+         bAvance =  ((*Me).GetNbWallsLeft () == 0);
+         bAvance |= ((*Me) == PlayersDatasOrdonnes.front ());
+         bAvance |= ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.front ().GetPCC ().size () - Marge));
+         bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
+      }
+      // 3 joueurs
+      else if (PlayersDatasOrdonnes.size () == 3) {
+         // Je ne peux plus construire de mur OU Je suis ne suis pas le dernier OU Je suis à la même distance que le premier et je suis le premier en ordre de jeu
+         bAvance =  ((*Me).GetNbWallsLeft () == 0);
+         bAvance |= ((*Me) != PlayersDatasOrdonnes.back ());
+         bAvance |= (((*Me) != PlayersDatasOrdonnes.back ()) && ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.back ().GetPCC ().size () - Marge)));
+         bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
+         bAvance |= (((*Me) != PlayersDatasOrdonnes.back ()) && ((*Me) != PlayersDatasOrdonnes.front ()) && (PlayersDatasOrdonnes.back ().GetNbWallsLeft () != 0));
+      }
+
+      if (bAvance) {
+         cerr << "G" << endl;
+         Action = IA.GetNextDirection ((*Me).GetPCC ());
+      }
+      else {
+         cerr << "B" << endl;
+         bBuildingOn = true;
+
+//         Action = IA.BuildWallInFrontOfPlayer (PlayersDatasOrdonnes, PlayersDatasOrdonnes.front (), WallsDatas);
+         CPlayerDatas::List::iterator ItPlayer = PlayersDatasOrdonnes.begin ();
+         while ((ItPlayer != Me) && (Action.empty ())) {
+            Action = IA.BuildWallInFrontOfPlayer (PlayersDatasOrdonnes, *ItPlayer, WallsDatas);
+            ++ItPlayer;
+         }
+
+         if (Action.empty ()) {
+            Action = IA.GetNextDirection ((*Me).GetPCC ());
+         }
+         else {
+            _bFirstWall = false;
+         }
+      }
+
+      cout << Action << endl; // action: LEFT, RIGHT, UP, DOWN or "putX putY putOrientation" to place a wall
+   }
 }
