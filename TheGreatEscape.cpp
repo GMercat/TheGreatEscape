@@ -570,9 +570,9 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayer
       CPlayerDatas& Player = *ItPlayer;
       const vector<int> PCCPlayer = Player.GetPCC ();
 
+      WallFound BestWallDatas;
       for (unsigned int iCase = 0; iCase < (PCCPlayer.size () - 1); ++iCase)
       {
-         WallFound BestWallDatas;
 
          const unsigned int iCaseNext = iCase + 1;
 
@@ -580,6 +580,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayer
          WallDatas      WallDatas;
          unsigned int   LengthPCC = 0;
          double         ScorePCC  = 0.0;
+
          // Si la prochaine case est celle de gauche
          if (PCCPlayer[iCaseNext] == (PCCPlayer[iCase] - 1))
          {
@@ -615,12 +616,12 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayer
 
          if (bConstructible)
          {
-            cerr << "Mur " << WallDatas.ToString () << " L=" << LengthPCC << " S=" << ScorePCC << " (constructible)" << endl;
-
+            //cerr << "Mur " << WallDatas.ToString () << " L=" << LengthPCC << " S=" << ScorePCC << endl;
+            //cerr << "BestWallDatas.Length " << BestWallDatas.Length << endl;
             //if (BestWallDatas.Length < LengthPCC) // TODO <=
             if (BestWallDatas.Score < ScorePCC)
             {
-   //            cerr << "Best" << endl;
+               //cerr << "Best" << endl;
 
                BestWallDatas.Length    = LengthPCC;
                BestWallDatas.Score     = ScorePCC;
@@ -863,7 +864,7 @@ void CIA::SelectionneBestWall (const CPlayerDatas& aPlayerDatas,
          aBestWallDatas = aWallDatas1;
          aLengthBestPCC = aLengthPCC1;
          aScore         = aScore1;
-         //if (aLengthPCC1 < aLengthPCC2)
+         //if (aLengthPCC1 < aLengthPCC2) // TODO
          if (aScore1 < aScore2)
          {
             aBestWallDatas = aWallDatas2;
