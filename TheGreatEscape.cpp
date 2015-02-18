@@ -39,6 +39,10 @@ struct Coord
 {
    int X;
    int Y;
+
+   bool operator== (const Coord& aCoord) {
+      return ((X == aCoord.X) && (Y == aCoord.Y));
+   }
 };
 
 struct WallDatas
@@ -49,6 +53,10 @@ struct WallDatas
    const string ToString (void) const
    {
       return to_string(Position.X) + " " + to_string(Position.Y) + " " + Orientation;
+   }
+
+   bool operator== (const WallDatas& aWallDatas) {
+      return ((Position == aWallDatas.Position) && (Orientation == aWallDatas.Orientation));
    }
 };
 
@@ -67,6 +75,72 @@ struct WallFound
 
 static bool _bFirstWall = true;
 static int  _myId = -1; // id of my player (0 = 1st player, 1 = 2nd player, ...)
+static int  _Width = 9;
+static int  _Height = 9;
+
+bool IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall)
+{
+    bool bConstructible = true;
+
+    if ((0 <= aNewWall.Y) && (aNewWall.Y <= (_Height - 2)))
+    {
+        vector<WallDatas>::const_iterator itWallDatas = aWallsBuilt.begin ();
+        while ((itWallDatas != aWallsBuilt.end ()) && bConstructible)
+        {
+            if (itWallDatas->Position.X == aNewWall.X)
+            {
+                if ((0 == itWallDatas->Orientation.compare(string("V"))) && ((itWallDatas->Position.Y == aNewWall.Y) || ((itWallDatas->Position.Y - 1) == aNewWall.Y) || ((itWallDatas->Position.Y + 1) == aNewWall.Y)))
+                {
+                    bConstructible = false;
+                }
+            }
+            else if (((itWallDatas->Position.X + 1) == aNewWall.X) && ((itWallDatas->Position.Y - 1) == aNewWall.Y) && (0 == itWallDatas->Orientation.compare(string("H"))))
+            {
+                bConstructible = false;
+            }
+
+            ++itWallDatas;
+        }
+    }
+    else
+    {
+        bConstructible = false;
+    }
+
+    return bConstructible;
+}
+
+bool IsConstructibleHorizontal (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall)
+{
+    bool bConstructible = true;
+
+    if ((0 <= aNewWall.X) && (aNewWall.X <= (_Width - 2)))
+    {
+        vector<WallDatas>::const_iterator itWallDatas = aWallsBuilt.begin ();
+        while ((itWallDatas != aWallsBuilt.end ()) && bConstructible)
+        {
+            if (itWallDatas->Position.Y == aNewWall.Y)
+            {
+                if ((0 == itWallDatas->Orientation.compare(string("H"))) && ((itWallDatas->Position.X == aNewWall.X) || ((itWallDatas->Position.X - 1) == aNewWall.X) || ((itWallDatas->Position.X + 1) == aNewWall.X)))
+                {
+                    bConstructible = false;
+                }
+            }
+            else if (((itWallDatas->Position.Y + 1) == aNewWall.Y) && ((itWallDatas->Position.X - 1) == aNewWall.X) && (0 == itWallDatas->Orientation.compare(string("V"))))
+            {
+                bConstructible = false;
+            }
+
+            ++itWallDatas;
+        }
+    }
+    else
+    {
+        bConstructible = false;
+    }
+
+    return bConstructible;
+}
 
 class CPlayerDatas
 {
@@ -122,6 +196,113 @@ public:
    inline void SetOut (void) {
       mbPlay = false;
    };
+
+   inline bool IsPositionStartPattern (const int& aWidth, const int& aHeigth) {
+      bool bPositionPatternOk = false;
+      switch (mDirection) {
+         case eRight:
+            bPositionPatternOk = (mPosition.X == aWidth - 2);
+            break;
+         case eLeft:
+            bPositionPatternOk = (mPosition.X == 1);
+            break;
+         case eDown:
+            bPositionPatternOk = (mPosition.Y == aHeigth - 2);
+            break;
+         case eUp:
+            bPositionPatternOk = (mPosition.Y == 1);
+            break;
+         default:
+            break;
+      }
+      return bPositionPatternOk;
+   }
+
+   inline Coord FindPositionWallBeforeMe (const vector<WallDatas>& aWallsDatas) {
+      Coord PositionWallBeforeMe;
+      WallDatas WallSearch1;
+      WallDatas WallSearch2;
+      switch (mDirection) {
+         case eRight:
+            WallSearch1 = {Coord{mPosition.X + 1, mPosition.Y}, "H"};
+            WallSearch2 = {Coord{mPosition.X + 1, mPosition.Y - 1}, "H"};
+            break;
+         case eLeft:
+            WallSearch1 = {Coord{mPosition.X - 1, mPosition.Y}, "H"};
+            WallSearch2 = {Coord{mPosition.X - 1, mPosition.Y - 1}, "H"};
+            break;
+         case eDown:
+            WallSearch1 = {Coord{mPosition.X, mPosition.Y + 1}, "V"};
+            WallSearch2 = {Coord{mPosition.X - 1, mPosition.Y + 1}, "V"};
+            break;
+         case eUp:
+            WallSearch1 = {Coord{mPosition.X, mPosition.Y - 1}, "V"};
+            WallSearch2 = {Coord{mPosition.X - 1, mPosition.Y - 1}, "V"};
+            break;
+         default:
+            break;
+      }
+      bool bWallFound = false;
+      vector<WallDatas>::const_iterator ItWall = aWallsDatas.begin ();
+      while ((ItWall != aWallsDatas.end ()) && !bWallFound) {
+         if (WallSearch1 == (*ItWall)) {
+            PositionWallBeforeMe = WallSearch1.Position;
+            bWallFound = true;
+         }
+         else if (WallSearch2 == (*ItWall)) {
+            PositionWallBeforeMe = WallSearch2.Position;
+            bWallFound = true;
+         }
+         ++ItWall;
+      }
+      return PositionWallBeforeMe;
+   }
+
+   inline bool StartPattern (const vector<WallDatas>& aWallsDatas, string aAction) {
+      bool bStart = false;
+      Coord WallBeforeMe = FindPositionWallBeforeMe (aWallsDatas);
+      switch (mDirection) {
+         case eRight:
+            bStart = IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y});
+            if (2 <= WallBeforeMe.Y) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            }
+            if (WallBeforeMe.Y <= 5) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y + 3});
+            }
+            break;
+         case eLeft:
+            bStart = IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X + 1, WallBeforeMe.Y});
+            if (2 <= WallBeforeMe.Y) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            }
+            if (WallBeforeMe.Y <= 5) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y + 3});
+            }
+            break;
+         case eDown:
+            bStart = IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X, WallBeforeMe.Y - 1});
+            if (2 <= WallBeforeMe.X) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            }
+            if (WallBeforeMe.X <= 5) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X + 3, WallBeforeMe.Y - 1});
+            }
+            break;
+         case eUp:
+            bStart = IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X, WallBeforeMe.Y - 1});
+            if (2 <= WallBeforeMe.X) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            }
+            if (WallBeforeMe.X <= 5) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X + 3, WallBeforeMe.Y - 1});
+            }
+            break;
+         default:
+            break;
+      }
+      return bStart;
+   }
 
 private:
    const int         mId;
@@ -193,9 +374,6 @@ private:
                               WallDatas& aBestWallDatas,
                               unsigned int& aLengthBestPCC,
                               double& aScore);
-
-    bool IsConstructibleVertical    (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const;
-    bool IsConstructibleHorizontal  (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const;
     
     bool IsCheminPossiblePlayer (const CPlayerDatas& aPlayersDatas) const;
     bool IsCheminPossible       (const int aNumCaseDepart, const int aNumCaseArrivee) const;
@@ -887,71 +1065,6 @@ void CIA::SelectionneBestWall (const CPlayerDatas& aPlayerDatas,
    }
 }
 
-bool CIA::IsConstructibleVertical (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const
-{
-    bool bConstructible = true;
-    
-    if ((0 <= aNewWall.Y) && (aNewWall.Y <= (mHeight - 2)))
-    {
-        vector<WallDatas>::const_iterator itWallDatas = aWallsBuilt.begin ();
-        while ((itWallDatas != aWallsBuilt.end ()) && bConstructible)
-        {
-            if (itWallDatas->Position.X == aNewWall.X)
-            {
-                if ((0 == itWallDatas->Orientation.compare(string("V"))) && ((itWallDatas->Position.Y == aNewWall.Y) || ((itWallDatas->Position.Y - 1) == aNewWall.Y) || ((itWallDatas->Position.Y + 1) == aNewWall.Y)))
-                {
-                    bConstructible = false;
-                }
-            }
-            else if (((itWallDatas->Position.X + 1) == aNewWall.X) && ((itWallDatas->Position.Y - 1) == aNewWall.Y) && (0 == itWallDatas->Orientation.compare(string("H"))))
-            {
-                bConstructible = false;
-            }
-            
-            ++itWallDatas;
-        }
-    }
-    else
-    {
-        bConstructible = false;
-    }
-    
-    return bConstructible;
-}
-
-bool CIA::IsConstructibleHorizontal (const vector<WallDatas>& aWallsBuilt, const Coord aNewWall) const
-{
-    bool bConstructible = true;
-    
-    if ((0 <= aNewWall.X) && (aNewWall.X <= (mWidth - 2)))
-    {
-        vector<WallDatas>::const_iterator itWallDatas = aWallsBuilt.begin ();
-        while ((itWallDatas != aWallsBuilt.end ()) && bConstructible)
-        {
-            if (itWallDatas->Position.Y == aNewWall.Y)
-            {
-                if ((0 == itWallDatas->Orientation.compare(string("H"))) && ((itWallDatas->Position.X == aNewWall.X) || ((itWallDatas->Position.X - 1) == aNewWall.X) || ((itWallDatas->Position.X + 1) == aNewWall.X)))
-                {
-                    bConstructible = false;
-                }
-            }
-            else if (((itWallDatas->Position.Y + 1) == aNewWall.Y) && ((itWallDatas->Position.X - 1) == aNewWall.X) && (0 == itWallDatas->Orientation.compare(string("V"))))
-            {
-                bConstructible = false;
-            }
-            
-            ++itWallDatas;
-        }
-    }
-    else
-    {
-        bConstructible = false;
-    }
-    
-    return bConstructible;
-}
-
-
 bool CIA::IsCheminPossiblePlayer (const CPlayerDatas& aPlayersDatas) const
 {
     bool bCheminExiste = false;
@@ -1097,20 +1210,19 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
  **/
 int main()
 {
-   int w; // width of the board
-   int h; // height of the board
    int playerCount; // number of players (2 or 3)
-   cin >> w >> h >> playerCount >> _myId; cin.ignore();
+   cin >> _Width >> _Height >> playerCount >> _myId; cin.ignore();
 
    CPlayerDatas::List     PlayersDatasOrdonnes;
    vector<WallDatas>      WallsDatas;
    bool                   bBuildingOn = false;
 
-   bool bModeContreOn = true;
+   bool bModePatternOn = true;
+   bool bPatternStarted = false;
 
    Measure measure;
 
-   CIA IA (w, h);
+   CIA IA (_Width, _Height);
 
    // game loop
    while (1) {
@@ -1147,7 +1259,8 @@ int main()
 
       IA.CalculCheminMinimaux ();
 
-      bool   bAvance = true;
+      bool  bAvance = true;
+      bool  bPattern = false;
       string Action;
 
       CPlayerDatas::List::iterator ItPlayerOrdonnes;
@@ -1185,13 +1298,24 @@ int main()
          bAvance |= ((*Me) == PlayersDatasOrdonnes.front ());
          bAvance |= ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.front ().GetPCC ().size () - Marge));
          bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
-         if (bModeContreOn) {
-            bAvance = (false == ((*Me) != PlayersDatasOrdonnes.front ()) && ((*Me).GetPosition ().X < PlayersDatasOrdonnes.front ().GetPosition ().X));
-
-            // Mur devant moi
-            if ()
-            {
-
+         if (bModePatternOn && ((*Me).GetPCC ().size () > 2)) {
+            CPlayerDatas::List::iterator OtherPlayer = PlayersDatasOrdonnes.begin ();
+            while ((OtherPlayer != PlayersDatasOrdonnes.end ()) && (OtherPlayer != Me)) {
+               ++OtherPlayer;
+            }
+            if (!bPatternStarted && (*Me).IsPositionStartPattern (_Width, _Height)) {
+               if ((*OtherPlayer).GetPCC ().size () > 2) {
+                  if ((*Me).StartPattern (WallsDatas, Action)) {
+                     bPattern = true;
+                     bPatternStarted = true;
+                  }
+               }
+               else {
+                  // TODO
+               }
+            }
+            else if (bPatternStarted) {
+               // TODO
             }
          }
       }
@@ -1203,6 +1327,13 @@ int main()
          bAvance |= (((*Me) != PlayersDatasOrdonnes.back ()) && ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.back ().GetPCC ().size () - Marge)));
          bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
          bAvance |= (((*Me) != PlayersDatasOrdonnes.back ()) && ((*Me) != PlayersDatasOrdonnes.front ()) && (PlayersDatasOrdonnes.back ().GetNbWallsLeft () != 0));
+      }
+
+      if (bPattern) {
+         cerr << "bPattern" << endl;
+         if (bPatternStarted) {
+            cerr << "bPatternStarted" << endl;
+         }
       }
 
       if (bAvance) {
