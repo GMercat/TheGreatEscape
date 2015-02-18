@@ -1106,6 +1106,8 @@ int main()
    vector<WallDatas>      WallsDatas;
    bool                   bBuildingOn = false;
 
+   bool bModeContreOn = true;
+
    Measure measure;
 
    CIA IA (w, h);
@@ -1183,6 +1185,15 @@ int main()
          bAvance |= ((*Me) == PlayersDatasOrdonnes.front ());
          bAvance |= ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.front ().GetPCC ().size () - Marge));
          bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
+         if (bModeContreOn) {
+            bAvance = (false == ((*Me) != PlayersDatasOrdonnes.front ()) && ((*Me).GetPosition ().X < PlayersDatasOrdonnes.front ().GetPosition ().X));
+
+            // Mur devant moi
+            if ()
+            {
+
+            }
+         }
       }
       // 3 joueurs
       else if (PlayersDatasOrdonnes.size () == 3) {
