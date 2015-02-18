@@ -575,7 +575,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayer
       {
 //         cerr << "Mur " << WallDatas.ToString () << " L=" << LengthPCC << " (constructible)" << endl;
 
-         if (LengthBestWall < LengthPCC)
+         if (LengthBestWall < LengthPCC) // TODO <=
          {
 //            cerr << "Best" << endl;
             LengthBestWall = LengthPCC;
