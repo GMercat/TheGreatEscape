@@ -1106,7 +1106,6 @@ int main()
    vector<WallDatas>      WallsDatas;
    bool                   bBuildingOn = false;
 
-
    bool bModeContreOn = true;
 
    Measure measure;
