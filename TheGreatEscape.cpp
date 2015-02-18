@@ -145,7 +145,7 @@ public:
     void    ConstruireMatriceGraphe       (void);
     void    AjoutMurMatriceGraphe         (const WallDatas& aWallDatas);
     void    AjoutMurMatriceGrapheLite     (const WallDatas& aWallDatas, const bool abDestroy);
-    bool    CalculPlusCourtCheminPlayer   (CPlayerDatas& aPlayersDatas);
+    bool    CalculPlusCourtCheminPlayer   (const CPlayerDatas& aPlayersDatas, vector<int>& aOutPlusCourtChemin);
     void    CalculCheminMinimaux          (void);
     
     string  GetNextDirection            (const vector<int>& aPlusCourtChemin);
@@ -443,12 +443,11 @@ void CIA::CalculCheminMinimaux (void)
     }
 }
 
-bool CIA::CalculPlusCourtCheminPlayer (CPlayerDatas& aPlayersDatas)
+bool CIA::CalculPlusCourtCheminPlayer (const CPlayerDatas& aPlayersDatas, vector<int>& aOutPlusCourtChemin)
 {
    bool bReturn = false;
    vector<int> CasesArrivees;
-   switch (aPlayersDatas.GetDirection ())
-   {
+   switch (aPlayersDatas.GetDirection ()) {
       case eRight:
          for (int i=0; i<mHeight; ++i)
             CasesArrivees.push_back ((mWidth - 1) + i * mWidth);
@@ -466,14 +465,12 @@ bool CIA::CalculPlusCourtCheminPlayer (CPlayerDatas& aPlayersDatas)
          break;
    }
    unsigned int DistanceMin = 99;
-   for (unsigned int i=0; i < CasesArrivees.size();++i)
-   {
+   for (unsigned int i=0; i < CasesArrivees.size();++i) {
       vector<int> PCC;
       bReturn = CalculPlusCourtChemin (aPlayersDatas.GetPosition ().X + aPlayersDatas.GetPosition ().Y * mWidth, CasesArrivees[i], PCC);
-      if (bReturn && (1 < PCC.size()) && (PCC.size() < DistanceMin))
-      {
+      if (bReturn && (1 < PCC.size()) && (PCC.size() < DistanceMin)) {
          DistanceMin = PCC.size();
-         aPlayersDatas.SetPCC (PCC);
+         aOutPlusCourtChemin = PCC;
       }
    }
    return (DistanceMin != 99);
@@ -488,8 +485,7 @@ bool CIA::CalculPlusCourtChemin (const int aNumCaseDepart, const int aNumCaseArr
     int NbIterMax = mHeight * mWidth;
     int NbIter = 0;
     aOutPlusCourtChemin.push_back (NumCaseCourante);
-    while ((NbIter != NbIterMax) && (NumCaseCourante != aNumCaseArrivee) && (NumCaseCourante < POIDS_MUR))
-    {
+    while ((NbIter != NbIterMax) && (NumCaseCourante != aNumCaseArrivee) && (NumCaseCourante < POIDS_MUR)) {
         NumCaseCourante = mCheminsMinimaux[aNumCaseArrivee][NumCaseCourante];
         aOutPlusCourtChemin.push_back (NumCaseCourante);
         ++NbIter;
@@ -724,22 +720,21 @@ bool CIA::ChercheNewPCCPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& 
    CalculCheminMinimaux ();
    CPlayerDatas::List::iterator itPlayerDatas = aPlayersDatas.begin ();
    while (itPlayerDatas != aPlayersDatas.end () && bConstructible) {
-      bConstructible = CalculPlusCourtCheminPlayer (*itPlayerDatas);
+      vector<int> PCC;
+      bConstructible = CalculPlusCourtCheminPlayer (*itPlayerDatas, PCC);
 
       if (bConstructible) {
-         const unsigned int Length = (*itPlayerDatas).GetPCC ().size ();
+         const int DiffLength = ((*itPlayerDatas).GetPCC ().size () - PCC.size ());
          if ((*itPlayerDatas).GetId () == _myId) {
-            aScore += (100 / Length);
+            aScore += (100 / DiffLength);
          }
          else if ((*itPlayerDatas) == aPlayer) {
-            aScore -= (100 / Length);
+            aScore -= (100 / DiffLength);
+            aLengthPCC = PCC.size ();
          }
       }
 
       ++itPlayerDatas;
-   }
-   if (bConstructible) {
-      aLengthPCC = aPlayer.GetPCC ().size ();
    }
    AjoutMurMatriceGrapheLite (aWallDatas, true);
    CalculCheminMinimaux ();
@@ -1130,7 +1125,9 @@ int main()
       for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
            ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
            ++ItPlayerOrdonnes) {
-         IA.CalculPlusCourtCheminPlayer (*ItPlayerOrdonnes);
+         vector<int> PCC;
+         IA.CalculPlusCourtCheminPlayer (*ItPlayerOrdonnes, PCC);
+         (*ItPlayerOrdonnes).SetPCC (PCC);
       }
       PlayersDatasOrdonnes.sort (ComparePlayer);
 
