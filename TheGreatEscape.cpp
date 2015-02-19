@@ -40,7 +40,7 @@ struct Coord
    int X;
    int Y;
 
-   bool operator== (const Coord& aCoord) {
+   bool operator== (const Coord& aCoord) const {
       return ((X == aCoord.X) && (Y == aCoord.Y));
    }
 };
@@ -55,7 +55,7 @@ struct WallDatas
       return to_string(Position.X) + " " + to_string(Position.Y) + " " + Orientation;
    }
 
-   bool operator== (const WallDatas& aWallDatas) {
+   bool operator== (const WallDatas& aWallDatas) const {
       return ((Position == aWallDatas.Position) && (Orientation == aWallDatas.Orientation));
    }
 };
@@ -218,8 +218,8 @@ public:
       return bPositionPatternOk;
    }
 
-   inline Coord FindPositionWallBeforeMe (const vector<WallDatas>& aWallsDatas) {
-      Coord PositionWallBeforeMe;
+   inline WallDatas FindWallBeforeMe (const vector<WallDatas>& aWallsDatas) {
+      WallDatas WallBeforeMe;
       WallDatas WallSearch1;
       WallDatas WallSearch2;
       switch (mDirection) {
@@ -246,62 +246,285 @@ public:
       vector<WallDatas>::const_iterator ItWall = aWallsDatas.begin ();
       while ((ItWall != aWallsDatas.end ()) && !bWallFound) {
          if (WallSearch1 == (*ItWall)) {
-            PositionWallBeforeMe = WallSearch1.Position;
+            WallBeforeMe = WallSearch1;
             bWallFound = true;
          }
          else if (WallSearch2 == (*ItWall)) {
-            PositionWallBeforeMe = WallSearch2.Position;
+            WallBeforeMe = WallSearch2;
             bWallFound = true;
          }
          ++ItWall;
       }
-      return PositionWallBeforeMe;
+      return WallBeforeMe;
    }
 
-   inline bool StartPattern (const vector<WallDatas>& aWallsDatas, string aAction) {
+   inline bool StartPattern (const vector<WallDatas>& aWallsDatas, WallDatas& aWallBeforeMe) {
       bool bStart = false;
-      Coord WallBeforeMe = FindPositionWallBeforeMe (aWallsDatas);
+      aWallBeforeMe = FindWallBeforeMe (aWallsDatas);
       switch (mDirection) {
          case eRight:
-            bStart = IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y});
-            if (2 <= WallBeforeMe.Y) {
-               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            bStart = IsConstructibleVertical (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y});
+            if (2 <= aWallBeforeMe.Position.Y) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y - 1});
             }
-            if (WallBeforeMe.Y <= 5) {
-               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y + 3});
+            if (aWallBeforeMe.Position.Y <= 5) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y + 3});
             }
             break;
          case eLeft:
-            bStart = IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X + 1, WallBeforeMe.Y});
-            if (2 <= WallBeforeMe.Y) {
-               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            bStart = IsConstructibleVertical (aWallsDatas, Coord{aWallBeforeMe.Position.X + 1, aWallBeforeMe.Position.Y});
+            if (2 <= aWallBeforeMe.Position.Y) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y - 1});
             }
-            if (WallBeforeMe.Y <= 5) {
-               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y + 3});
+            if (aWallBeforeMe.Position.Y <= 5) {
+               bStart &= IsConstructibleHorizontal (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y + 3});
             }
             break;
          case eDown:
-            bStart = IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X, WallBeforeMe.Y - 1});
-            if (2 <= WallBeforeMe.X) {
-               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            bStart = IsConstructibleHorizontal (aWallsDatas, Coord{aWallBeforeMe.Position.X, aWallBeforeMe.Position.Y - 1});
+            if (2 <= aWallBeforeMe.Position.X) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y - 1});
             }
-            if (WallBeforeMe.X <= 5) {
-               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X + 3, WallBeforeMe.Y - 1});
+            if (aWallBeforeMe.Position.X <= 5) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{aWallBeforeMe.Position.X + 3, aWallBeforeMe.Position.Y - 1});
             }
             break;
          case eUp:
-            bStart = IsConstructibleHorizontal (aWallsDatas, Coord{WallBeforeMe.X, WallBeforeMe.Y - 1});
-            if (2 <= WallBeforeMe.X) {
-               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X - 1, WallBeforeMe.Y - 1});
+            bStart = IsConstructibleHorizontal (aWallsDatas, Coord{aWallBeforeMe.Position.X, aWallBeforeMe.Position.Y - 1});
+            if (2 <= aWallBeforeMe.Position.X) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{aWallBeforeMe.Position.X - 1, aWallBeforeMe.Position.Y - 1});
             }
-            if (WallBeforeMe.X <= 5) {
-               bStart &= IsConstructibleVertical (aWallsDatas, Coord{WallBeforeMe.X + 3, WallBeforeMe.Y - 1});
+            if (aWallBeforeMe.Position.X <= 5) {
+               bStart &= IsConstructibleVertical (aWallsDatas, Coord{aWallBeforeMe.Position.X + 3, aWallBeforeMe.Position.Y - 1});
             }
             break;
          default:
             break;
       }
       return bStart;
+   }
+
+   inline unsigned int GetNextStep (const vector<WallDatas>& aWallsDatas, const unsigned int& aCurrentStep, const WallDatas& aWallRef, string& aAction) {
+      unsigned int NextStep = 0;
+      bool bStepFound = false;
+      if (aCurrentStep == 0) {
+         const WallDatas& WallBehindMe = GetWallBehindMe (aWallRef);
+         bool bHasWallBehindMe = WallExist (aWallsDatas, WallBehindMe);
+         if (!bHasWallBehindMe &&  WallIsBuilding (aWallsDatas, WallBehindMe)) {
+            aAction = WallBehindMe.ToString ();
+            NextStep = 1;
+            bStepFound = true;
+         }
+         else if (bHasWallBehindMe) {
+            NextStep = GetNextStep (aWallsDatas, NextStep, aWallRef, aAction);
+            bStepFound = true;
+         }
+         else {
+            // TODO ABORT
+         }
+      }
+      else {
+         // TODO ABORT
+      }
+      if (!bStepFound && (aCurrentStep == 1)) {
+         WallDatas WallBuilding;
+         const WallDatas& WallSideLeft  = GetWallSideLeft (aWallRef);
+         const WallDatas& WallSideRigth = GetWallSideRigth (aWallRef);
+         bool bWallSideLeftExist  = WallExist (aWallsDatas, WallSideLeft);
+         bool bWallSideRigthExist = WallExist (aWallsDatas, WallSideRigth);
+         if (bWallSideLeftExist && bWallSideRigthExist) {
+            // TODO ABORT
+         }
+         else if (bWallSideLeftExist && WallPatternLeftIsBuilding (aWallsDatas, aWallRef, WallBuilding)) {
+            aAction = WallBuilding.ToString ();
+            NextStep = 2;
+            bStepFound = true;
+         }
+         else if (bWallSideRigthExist && WallPatternRigthIsBuilding (aWallsDatas, aWallRef, WallBuilding)) {
+            aAction = WallBuilding.ToString ();
+            NextStep = 2;
+            bStepFound = true;
+         }
+         else if (HasNoBlockWallSideAndWallAreBuilding (aWallsDatas, WallSideLeft, WallSideRigth, WallBuilding)) {
+            aAction = WallBuilding.ToString ();
+            NextStep = 3;
+            bStepFound = true;
+         }
+         else {
+            // TODO ABORT
+         }
+      }
+      if (!bStepFound && ((aCurrentStep == 2) || aCurrentStep == 3)) {
+         if ((mPCC.size () > 3) && IsBuildingLastWallPattern ()) {
+            NextStep = 4;
+            bStepFound = true;
+         }
+         else if (mPCC.size () > 3) {
+            // TODO ABORT
+         }
+         else {
+            NextStep = 5;
+            bStepFound = true;
+         }
+      }
+      if (!bStepFound && (aCurrentStep == 4)) {
+         NextStep = 5;
+         bStepFound = true;
+      }
+
+      return NextStep;
+   }
+
+   inline WallDatas GetWallBehindMe (const WallDatas& aWallRef) {
+      WallDatas WallSearch = aWallRef;
+      switch (mDirection) {
+         case eRight:
+            WallSearch.Position.X = WallSearch.Position.X - 1;
+            break;
+         case eLeft:
+            WallSearch.Position.X = WallSearch.Position.X + 1;
+            break;
+         case eDown:
+            WallSearch.Position.Y = WallSearch.Position.Y - 1;
+            break;
+         case eUp:
+            WallSearch.Position.Y = WallSearch.Position.Y + 1;
+            break;
+         default:
+            break;
+      }
+      return WallSearch;
+   }
+
+   inline WallDatas GetWallSideLeft (const WallDatas& aWallRef) {
+      WallDatas WallSearch = aWallRef;
+      switch (mDirection) {
+         case eRight:
+            WallSearch.Position.Y = WallSearch.Position.Y - 2;
+            break;
+         case eLeft:
+            WallSearch.Position.Y = WallSearch.Position.Y + 2;
+            break;
+         case eDown:
+            WallSearch.Position.X = WallSearch.Position.X + 2;
+            break;
+         case eUp:
+            WallSearch.Position.X = WallSearch.Position.X - 2;
+            break;
+         default:
+            break;
+      }
+      return WallSearch;
+   }
+
+   inline WallDatas GetWallSideRigth (const WallDatas& aWallRef) {
+      WallDatas WallSearch = aWallRef;
+      switch (mDirection) {
+         case eRight:
+            WallSearch.Position.Y = WallSearch.Position.Y + 2;
+            break;
+         case eLeft:
+            WallSearch.Position.Y = WallSearch.Position.Y - 2;
+            break;
+         case eDown:
+            WallSearch.Position.X = WallSearch.Position.X - 2;
+            break;
+         case eUp:
+            WallSearch.Position.X = WallSearch.Position.X + 2;
+            break;
+         default:
+            break;
+      }
+      return WallSearch;
+   }
+
+   inline bool WallExist (const vector<WallDatas>& aWallsDatas, const WallDatas& aWall) {
+      bool bWallFound = false;
+      vector<WallDatas>::const_iterator ItWall = aWallsDatas.begin ();
+      while ((ItWall != aWallsDatas.end ()) && !bWallFound) {
+         if (aWall == (*ItWall)) {
+            bWallFound = true;
+         }
+         ++ItWall;
+      }
+      return bWallFound;
+   }
+
+   inline bool WallIsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWall) {
+      bool bIsBuilding = false;
+      switch (mDirection) {
+         case eRight:
+         case eLeft:
+            bIsBuilding = IsConstructibleVertical (aWallsDatas, aWall.Position);
+            break;
+         case eDown:
+         case eUp:
+            bIsBuilding = IsConstructibleHorizontal (aWallsDatas, aWall.Position);
+            break;
+         default:
+            break;
+      }
+      return bIsBuilding;
+   }
+
+   inline bool WallPatternLeftIsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallRef, WallDatas& aWallBuilding) {
+      switch (mDirection) {
+         case eRight:
+            aWallBuilding.Position = Coord {aWallRef.Position.X - 1, aWallRef.Position.Y};
+            aWallBuilding.Orientation = "H";
+            break;
+         case eLeft:
+            aWallBuilding.Position = Coord {aWallRef.Position.X - 1, aWallRef.Position.Y + 2};
+            aWallBuilding.Orientation = "H";
+            break;
+         case eDown:
+            aWallBuilding.Position = Coord {aWallRef.Position.X + 2, aWallRef.Position.Y - 1};
+            aWallBuilding.Orientation = "V";
+            break;
+         case eUp:
+            aWallBuilding.Position = Coord {aWallRef.Position.X, aWallRef.Position.Y - 1};
+            aWallBuilding.Orientation = "V";
+            break;
+         default:
+            break;
+      }
+      return WallIsBuilding (aWallsDatas, aWallBuilding);
+   }
+
+   inline bool WallPatternRigthIsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallRef, WallDatas& aWallBuilding) {
+      switch (mDirection) {
+         case eRight:
+            aWallBuilding.Position = Coord {aWallRef.Position.X - 1, aWallRef.Position.Y + 2};
+            aWallBuilding.Orientation = "H";
+            break;
+         case eLeft:
+            aWallBuilding.Position = Coord {aWallRef.Position.X - 1, aWallRef.Position.Y};
+            aWallBuilding.Orientation = "H";
+            break;
+         case eDown:
+            aWallBuilding.Position = Coord {aWallRef.Position.X, aWallRef.Position.Y - 1};
+            aWallBuilding.Orientation = "V";
+            break;
+         case eUp:
+            aWallBuilding.Position = Coord {aWallRef.Position.X + 2, aWallRef.Position.Y - 1};
+            aWallBuilding.Orientation = "V";
+            break;
+         default:
+            break;
+      }
+      return WallIsBuilding (aWallsDatas, aWallBuilding);
+   }
+
+   inline bool HasNoBlockWallSideAndWallAreBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallLeft, const WallDatas& aWallRigth, WallDatas& aWallBuilding) {
+      bool bContinue = false;
+      // TODO
+      return bContinue;
+   }
+
+   inline bool IsBuildingLastWallPattern (void) {
+      bool bContinue = false;
+      // TODO
+      return bContinue;
    }
 
 private:
@@ -1217,8 +1440,10 @@ int main()
    vector<WallDatas>      WallsDatas;
    bool                   bBuildingOn = false;
 
-   bool bModePatternOn = true;
-   bool bPatternStarted = false;
+   bool           bModePatternOn = true;
+   bool           bPatternStarted = false;
+   unsigned int   CurrentStep = 0;
+   WallDatas      WallDatasRef;
 
    Measure measure;
 
@@ -1305,7 +1530,8 @@ int main()
             }
             if (!bPatternStarted && (*Me).IsPositionStartPattern (_Width, _Height)) {
                if ((*OtherPlayer).GetPCC ().size () > 2) {
-                  if ((*Me).StartPattern (WallsDatas, Action)) {
+                  if ((*Me).StartPattern (WallsDatas, WallDatasRef)) {
+                     CurrentStep = 0;
                      bPattern = true;
                      bPatternStarted = true;
                   }
@@ -1315,7 +1541,13 @@ int main()
                }
             }
             else if (bPatternStarted) {
-               // TODO
+               if ((*OtherPlayer).GetPCC ().size () > 5) {
+                  CurrentStep = (*Me).GetNextStep (WallsDatas, CurrentStep, WallDatasRef, Action);
+                  if (CurrentStep == 0) {
+                     bPattern = false;
+                     bPatternStarted = false;
+                  }
+               }
             }
          }
       }
