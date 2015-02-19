@@ -1182,7 +1182,7 @@ int main()
          bAvance =  ((*Me).GetNbWallsLeft () == 0);
          bAvance |= ((*Me) == PlayersDatasOrdonnes.front ());
          bAvance |= ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.front ().GetPCC ().size () - Marge));
-         bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
+         bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 3) && !bBuildingOn));
       }
       // 3 joueurs
       else if (PlayersDatasOrdonnes.size () == 3) {
