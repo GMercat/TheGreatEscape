@@ -120,26 +120,25 @@ bool IsConstructibleHorizontal (const vector<WallDatas>& aWallsBuilt, const Coor
     return bConstructible;
 }
 
-class CPlayerDatas
+class CPlayer
 {
 public:
-   typedef vector<CPlayerDatas> Vector;
-   typedef list<CPlayerDatas> List;
+   typedef vector<CPlayer> Vector;
+   typedef list<CPlayer> List;
 public:
-   CPlayerDatas (const int& aId,const Coord& aPosition, const int& aWallsLeft):
+   CPlayer (const int& aId,const Coord& aPosition, const int& aWallsLeft):
       mId         (aId),
-      mDirection  (static_cast<EDirection>(aId)),
+      mDir  (static_cast<EDirection>(aId)),
       mPos   (aPosition),
-      mWallsLeft  (aWallsLeft),
-      mbPlay      (true)
+      mWallsLeft  (aWallsLeft)
    {};
-   ~CPlayerDatas () {};
+   ~CPlayer () {};
 
-   inline bool operator== (const CPlayerDatas& aPlayer) {
+   inline bool operator== (const CPlayer& aPlayer) {
          return (mId == aPlayer.mId);
    };
 
-   inline bool operator!= (const CPlayerDatas& aPlayer) {
+   inline bool operator!= (const CPlayer& aPlayer) {
       return (mId != aPlayer.mId);
    };
 
@@ -148,7 +147,7 @@ public:
    };
 
    inline const EDirection GetDirection () const {
-      return mDirection;
+      return mDir;
    };
 
    inline const Coord GetPosition () const {
@@ -167,17 +166,9 @@ public:
       mPCC = aPCC;
    };
 
-   inline bool Play () const {
-      return mbPlay;
-   };
-
-   inline void SetOut () {
-      mbPlay = false;
-   };
-
    inline bool IsPositionStartPattern () {
       bool bPosOk = false;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             bPosOk = (mPos.X == _Width - 2);
             break;
@@ -200,7 +191,7 @@ public:
       WallDatas WallBeforeMe;
       WallDatas WallSearch1;
       WallDatas WallSearch2;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             WallSearch1 = {Coord{mPos.X + 1, mPos.Y}, "V"};
             WallSearch2 = {Coord{mPos.X + 1, mPos.Y - 1}, "V"};
@@ -239,7 +230,7 @@ public:
    inline bool StartPattern (const vector<WallDatas>& aWallsDatas, WallDatas& aWall) {
       bool bStart = false;
       aWall = FindWallBeforeMe (aWallsDatas);
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             bStart = IsConstructibleVertical (aWallsDatas, Coord{aWall.Pos.X - 1, aWall.Pos.Y});
             if (2 <= aWall.Pos.Y) {
@@ -340,16 +331,16 @@ public:
       }
       if (!bStepFound && (aCurrentStep == 2)) {
          WallDatas WallBuilding = {Coord{-1, -1}, "H"};
-         if ((mPCC.size () > 3) && WallPatternRigthIsBuilding (aWallsDatas, aWallRef, WallBuilding)) {
+         if ((mPCC.size () > 2) && WallPatternRigthIsBuilding (aWallsDatas, aWallRef, WallBuilding)) {
             aAction = WallBuilding.ToString ();
             NextStep = 3;
             bStepFound = true;
          }
-         else if (mPCC.size () > 3 && WallBuilding.IsValid ()) {
+         else if (mPCC.size () > 2 && WallBuilding.IsValid ()) {
             NextStep = 4;
             bStepFound = true;
          }
-         else if (mPCC.size () > 3) {
+         else if (mPCC.size () > 2) {
             cerr << "GetNextStep : ABORT 5" << endl;
             bStepFound = true;
          }
@@ -372,7 +363,7 @@ public:
 
    inline WallDatas GetWallBehindMe (const WallDatas& aWallRef) {
       WallDatas WallSearch = aWallRef;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             WallSearch.Pos.X = WallSearch.Pos.X - 1;
             break;
@@ -393,7 +384,7 @@ public:
 
    inline WallDatas GetWallSideLeft (const WallDatas& aWallRef) {
       WallDatas WallSearch = aWallRef;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             WallSearch.Pos.Y = WallSearch.Pos.Y - 2;
             break;
@@ -414,7 +405,7 @@ public:
 
    inline WallDatas GetWallSideRigth (const WallDatas& aWallRef) {
       WallDatas WallSearch = aWallRef;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             WallSearch.Pos.Y = WallSearch.Pos.Y + 2;
             break;
@@ -457,7 +448,7 @@ public:
    }
 
    inline bool WallPatternLeft2IsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallRef, WallDatas& aWallBuilding) {
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             aWallBuilding.Pos = Coord {aWallRef.Pos.X - 1, aWallRef.Pos.Y};
             aWallBuilding.Orientation = "H";
@@ -481,7 +472,7 @@ public:
    }
 
    inline bool WallPatternRigth2IsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallRef, WallDatas& aWallBuilding) {
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             aWallBuilding.Pos = Coord {aWallRef.Pos.X - 1, aWallRef.Pos.Y + 2};
             aWallBuilding.Orientation = "H";
@@ -506,7 +497,7 @@ public:
 
    inline bool WallPatternLeftIsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallRef, WallDatas& aWallBuilding) {
       bool bContinue = false;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             if (1 < aWallRef.Pos.Y)
             {
@@ -550,7 +541,7 @@ public:
 
    inline bool WallPatternRigthIsBuilding (const vector<WallDatas>& aWallsDatas, const WallDatas& aWallRef, WallDatas& aWallBuilding) {
       bool bContinue = false;
-      switch (mDirection) {
+      switch (mDir) {
          case eRight:
             if (aWallRef.Pos.Y < (_Height - 3))
             {
@@ -587,6 +578,7 @@ public:
             break;
       }
       if (bContinue) {
+         cerr << "WallPatternRigthIsBuilding " << aWallBuilding.ToString() << endl;
          bContinue = WallIsBuilding (aWallsDatas, aWallBuilding);
       }
       return bContinue;
@@ -594,15 +586,14 @@ public:
 
 private:
    const int         mId;
-   const EDirection  mDirection;
+   const EDirection  mDir;
    const Coord       mPos;
    const int         mWallsLeft;
 
-   bool              mbPlay;
    vector<int>       mPCC;
 };
 
-bool ComparePlayer (const CPlayerDatas& aPlayer1, const CPlayerDatas& aPlayer2)
+bool ComparePlayer (const CPlayer& aPlayer1, const CPlayer& aPlayer2)
 {
    bool bReturn = false;
    if (aPlayer1.GetPCC ().size () < aPlayer2.GetPCC ().size ()) {
@@ -633,30 +624,32 @@ public:
     void    ConstruireMatriceGraphe       ();
     void    AjoutMurMatriceGraphe         (const WallDatas& aWallDatas);
     void    AjoutMurMatriceGrapheLite     (const WallDatas& aWallDatas, const bool abDestroy);
-    bool    CalculPlusCourtCheminPlayer   (const CPlayerDatas& aPlayersDatas, vector<int>& aOutPlusCourtChemin);
+    bool    CalculPCCPlayer   (const CPlayer& aPlayersDatas, vector<int>& aOutPlusCourtChemin);
     void    CalculCheminMinimaux          ();
     
     string  GetNextDirection            (const vector<int>& aPlusCourtChemin);
-    string  BuildWallInFrontOfPlayer    (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt);
+    string  BuildWallInFrontOfPlayer    (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const vector<WallDatas>& aWallsBuilt);
+
+    bool TestPositionMur (const CPlayer::List& aPlayersDatas, const WallDatas& aWallDatas);
 
 private:
-    bool CalculPlusCourtChemin  (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin);
+    bool CalculPCC  (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin);
     
-    bool BuildVerticalWall    (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore);
-    bool BuildHorizontalWall  (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore);
+    bool BuildVerticalWall    (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore);
+    bool BuildHorizontalWall  (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore);
 
-    bool ChercheNewPCCPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore);
-    void SelectionneBestWall (const CPlayerDatas& aPlayerDatas, const bool& abConstructible1, const WallDatas& aWallDatas1, const unsigned int& aLengthPCC1, const double& aScore1, const bool& abConstructible2, const WallDatas& aWallDatas2, const unsigned int& aLengthPCC2, const double& aScore2, WallDatas& aBestWallDatas, unsigned int& aLengthBestPCC, double& aScore);
+    bool ChercheNewPCCPlayer (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore);
+    void SelectionneBestWall (const CPlayer& aPlayerDatas, const bool& abConstructible1, const WallDatas& aWallDatas1, const unsigned int& aLengthPCC1, const double& aScore1, const bool& abConstructible2, const WallDatas& aWallDatas2, const unsigned int& aLengthPCC2, const double& aScore2, WallDatas& aBestWallDatas, unsigned int& aLengthBestPCC, double& aScore);
     
-    bool IsCheminPossiblePlayer (const CPlayerDatas& aPlayersDatas) const;
+    bool IsCheminPossiblePlayer (const CPlayer& aPlayersDatas) const;
     bool IsCheminPossible       (const int aNumCaseDepart, const int aNumCaseArrivee) const;
 private:
     const int mWidth;
     const int mHeight;
     
-    int **mMatriceGraph;
-    int **mMatriceGraphCalcul;
-    int **mCheminsMinimaux;
+    int **mMatGraph;
+    int **mMatGraphCalcul;
+    int **mCheminsMin;
 };
 
 CIA::CIA (const int aWidth, const int aHeight):
@@ -664,22 +657,22 @@ CIA::CIA (const int aWidth, const int aHeight):
     mHeight (aHeight)
 {
     const int NbLigneColonne = mWidth * mHeight;
-    mMatriceGraph = new int* [NbLigneColonne];
-    mMatriceGraphCalcul = new int* [NbLigneColonne];
-    mCheminsMinimaux = new int* [NbLigneColonne];
+    mMatGraph = new int* [NbLigneColonne];
+    mMatGraphCalcul = new int* [NbLigneColonne];
+    mCheminsMin = new int* [NbLigneColonne];
     for (int IterLigne = 0; IterLigne < NbLigneColonne ; IterLigne++) {
-        mMatriceGraph[IterLigne] = new int[NbLigneColonne];
-        mMatriceGraphCalcul[IterLigne] = new int[NbLigneColonne];
-        mCheminsMinimaux[IterLigne] = new int[NbLigneColonne];
+        mMatGraph[IterLigne] = new int[NbLigneColonne];
+        mMatGraphCalcul[IterLigne] = new int[NbLigneColonne];
+        mCheminsMin[IterLigne] = new int[NbLigneColonne];
     }
     
     for (int IterLigne= 0; IterLigne < NbLigneColonne; ++IterLigne) {
         for (int IterColonne= 0; IterColonne < NbLigneColonne; ++IterColonne) {
             if (IterLigne == IterColonne) {
-                mMatriceGraph[IterColonne][IterLigne] = 0;
+                mMatGraph[IterColonne][IterLigne] = 0;
             }
             else {
-                mMatriceGraph[IterColonne][IterLigne] = POIDS_MUR;
+                mMatGraph[IterColonne][IterLigne] = POIDS_MUR;
             }
         }
     }
@@ -689,11 +682,11 @@ CIA::~CIA ()
 {
     const int NbLigneColonne = mWidth * mHeight;
     for(int IterLigne = 0 ; IterLigne < NbLigneColonne ; ++IterLigne) {
-        delete[] mMatriceGraph[IterLigne];
-        delete[] mCheminsMinimaux[IterLigne];
+        delete[] mMatGraph[IterLigne];
+        delete[] mCheminsMin[IterLigne];
     }
-    delete[] mMatriceGraph;
-    delete[] mCheminsMinimaux;
+    delete[] mMatGraph;
+    delete[] mCheminsMin;
 }
 
 void CIA::ConstruireMatriceGraphe ()
@@ -708,20 +701,20 @@ void CIA::ConstruireMatriceGraphe ()
         for (IterHauteur = 0; IterHauteur < NbCaseHauteur; ++IterHauteur) {
             NumCaseCourante = IterLargeur + (IterHauteur * NbCaseLargeur);
             if (IterLargeur != 0) {
-                mMatriceGraph[NumCaseCourante][(IterLargeur - 1) + IterHauteur * NbCaseLargeur] = 1;
-                mMatriceGraph[(IterLargeur - 1) + IterHauteur * NbCaseLargeur][NumCaseCourante] = 1;
+                mMatGraph[NumCaseCourante][(IterLargeur - 1) + IterHauteur * NbCaseLargeur] = 1;
+                mMatGraph[(IterLargeur - 1) + IterHauteur * NbCaseLargeur][NumCaseCourante] = 1;
             }
             if (IterLargeur != (NbCaseLargeur - 1)) {
-                mMatriceGraph[NumCaseCourante][(IterLargeur + 1) + IterHauteur * NbCaseLargeur] = 1;
-                mMatriceGraph[(IterLargeur + 1) + IterHauteur * NbCaseLargeur][NumCaseCourante] = 1;
+                mMatGraph[NumCaseCourante][(IterLargeur + 1) + IterHauteur * NbCaseLargeur] = 1;
+                mMatGraph[(IterLargeur + 1) + IterHauteur * NbCaseLargeur][NumCaseCourante] = 1;
             }
             if (IterHauteur != 0) {
-                mMatriceGraph[NumCaseCourante][IterLargeur + (IterHauteur - 1) * NbCaseLargeur] = 1;
-                mMatriceGraph[IterLargeur + (IterHauteur - 1) * NbCaseLargeur][NumCaseCourante] = 1;
+                mMatGraph[NumCaseCourante][IterLargeur + (IterHauteur - 1) * NbCaseLargeur] = 1;
+                mMatGraph[IterLargeur + (IterHauteur - 1) * NbCaseLargeur][NumCaseCourante] = 1;
             }
             if (IterHauteur != (NbCaseHauteur - 1)) {
-                mMatriceGraph[NumCaseCourante][IterLargeur + (IterHauteur + 1) * NbCaseLargeur] = 1;
-                mMatriceGraph[IterLargeur + (IterHauteur + 1) * NbCaseLargeur][NumCaseCourante] = 1;
+                mMatGraph[NumCaseCourante][IterLargeur + (IterHauteur + 1) * NbCaseLargeur] = 1;
+                mMatGraph[IterLargeur + (IterHauteur + 1) * NbCaseLargeur][NumCaseCourante] = 1;
             }
         }
     }
@@ -731,26 +724,26 @@ void CIA::CalculCheminMinimaux ()
 {
     for (int IterLigne = 0; IterLigne < mWidth * mHeight; ++IterLigne) {
         for (int IterColonne = 0; IterColonne < mWidth * mHeight; ++IterColonne) {
-            mMatriceGraphCalcul[IterLigne][IterColonne] = mMatriceGraph[IterLigne][IterColonne];
-            if ((IterLigne != IterColonne) && (mMatriceGraph[IterLigne][IterColonne] < POIDS_MUR)) {
-                mCheminsMinimaux[IterLigne][IterColonne] = IterLigne;
+            mMatGraphCalcul[IterLigne][IterColonne] = mMatGraph[IterLigne][IterColonne];
+            if ((IterLigne != IterColonne) && (mMatGraph[IterLigne][IterColonne] < POIDS_MUR)) {
+                mCheminsMin[IterLigne][IterColonne] = IterLigne;
             }
             else {
-                mCheminsMinimaux[IterLigne][IterColonne] = POIDS_MUR;
+                mCheminsMin[IterLigne][IterColonne] = POIDS_MUR;
             }
         }
     }
     for (int IterInterm = 0; IterInterm < mWidth * mHeight; ++IterInterm) {
         for (int IterLigne = 0; IterLigne < mWidth * mHeight; ++IterLigne) {
-            if (mMatriceGraphCalcul[IterLigne][IterInterm] < POIDS_MUR) {
+            if (mMatGraphCalcul[IterLigne][IterInterm] < POIDS_MUR) {
                 for (int IterColonne = 0; IterColonne < mWidth * mHeight; ++IterColonne) {
-                    int Cheminik = mMatriceGraphCalcul[IterLigne][IterInterm];
-                    int Cheminkj = mMatriceGraphCalcul[IterInterm][IterColonne];
+                    int Cheminik = mMatGraphCalcul[IterLigne][IterInterm];
+                    int Cheminkj = mMatGraphCalcul[IterInterm][IterColonne];
                     if ((Cheminik < POIDS_MUR) && (Cheminkj < POIDS_MUR)) {
                         int Cheminij = Cheminik + Cheminkj;
-                        if (Cheminij < mMatriceGraphCalcul[IterLigne][IterColonne]) {
-                            mMatriceGraphCalcul[IterLigne][IterColonne] = Cheminij;
-                            mCheminsMinimaux[IterLigne][IterColonne] = mCheminsMinimaux[IterInterm][IterColonne];
+                        if (Cheminij < mMatGraphCalcul[IterLigne][IterColonne]) {
+                            mMatGraphCalcul[IterLigne][IterColonne] = Cheminij;
+                            mCheminsMin[IterLigne][IterColonne] = mCheminsMin[IterInterm][IterColonne];
                         }
                     }
                 }
@@ -759,7 +752,7 @@ void CIA::CalculCheminMinimaux ()
     }
 }
 
-bool CIA::CalculPlusCourtCheminPlayer (const CPlayerDatas& aPlayersDatas, vector<int>& aOutPlusCourtChemin)
+bool CIA::CalculPCCPlayer (const CPlayer& aPlayersDatas, vector<int>& aOutPlusCourtChemin)
 {
    bool bReturn = false;
    vector<int> CasesArrivees;
@@ -783,7 +776,7 @@ bool CIA::CalculPlusCourtCheminPlayer (const CPlayerDatas& aPlayersDatas, vector
    unsigned int DistanceMin = 99;
    for (unsigned int i=0; i < CasesArrivees.size();++i) {
       vector<int> PCC;
-      bReturn = CalculPlusCourtChemin (aPlayersDatas.GetPosition ().X + aPlayersDatas.GetPosition ().Y * mWidth, CasesArrivees[i], PCC);
+      bReturn = CalculPCC (aPlayersDatas.GetPosition ().X + aPlayersDatas.GetPosition ().Y * mWidth, CasesArrivees[i], PCC);
       if (bReturn && (1 < PCC.size()) && (PCC.size() < DistanceMin)) {
          DistanceMin = PCC.size();
          aOutPlusCourtChemin = PCC;
@@ -792,7 +785,7 @@ bool CIA::CalculPlusCourtCheminPlayer (const CPlayerDatas& aPlayersDatas, vector
    return (DistanceMin != 99);
 }
 
-bool CIA::CalculPlusCourtChemin (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin)
+bool CIA::CalculPCC (const int aNumCaseDepart, const int aNumCaseArrivee, vector<int>& aOutPlusCourtChemin)
 {
     aOutPlusCourtChemin.clear();
     int NumCaseCourante = aNumCaseDepart;
@@ -800,7 +793,7 @@ bool CIA::CalculPlusCourtChemin (const int aNumCaseDepart, const int aNumCaseArr
     int NbIter = 0;
     aOutPlusCourtChemin.push_back (NumCaseCourante);
     while ((NbIter != NbIterMax) && (NumCaseCourante != aNumCaseArrivee) && (NumCaseCourante < POIDS_MUR)) {
-        NumCaseCourante = mCheminsMinimaux[aNumCaseArrivee][NumCaseCourante];
+        NumCaseCourante = mCheminsMin[aNumCaseArrivee][NumCaseCourante];
         aOutPlusCourtChemin.push_back (NumCaseCourante);
         ++NbIter;
     }
@@ -831,12 +824,12 @@ string CIA::GetNextDirection (const vector<int>& aPlusCourtChemin)
     return Direction;
 }
 
-string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aMe, const vector<WallDatas>& aWallsBuilt)
+string CIA::BuildWallInFrontOfPlayer (CPlayer::List& aPlayersDatas, CPlayer& aMe, const vector<WallDatas>& aWallsBuilt)
 {
    string WallBuilding;
-   CPlayerDatas::List::iterator ItPlayer = aPlayersDatas.begin ();
+   CPlayer::List::iterator ItPlayer = aPlayersDatas.begin ();
    while (((*ItPlayer) != aMe) && (WallBuilding.empty ())) {
-      CPlayerDatas& Player = *ItPlayer;
+      CPlayer& Player = *ItPlayer;
       const vector<int> PCCPlayer = Player.GetPCC ();
 
       WallFound BestWallDatas;
@@ -871,6 +864,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayer
             bConstructible = BuildHorizontalWall (aPlayersDatas, Player, aWallsBuilt, CoordNewWall1, CoordNewWall2, WallDatas, LengthPCC, ScorePCC);
          }
          if (bConstructible) {
+            cerr << "BestWallDatas.Score=" << BestWallDatas.Score << " ScorePCC=" << ScorePCC << endl;
             //if (BestWallDatas.Length < LengthPCC) // TODO <=
             if (BestWallDatas.Score < ScorePCC)
             {
@@ -887,7 +881,7 @@ string CIA::BuildWallInFrontOfPlayer (CPlayerDatas::List& aPlayersDatas, CPlayer
    return WallBuilding;
 }
 
-bool CIA::BuildVerticalWall (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore)
+bool CIA::BuildVerticalWall (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore)
 {
    bool bConstructible1 = IsConstructibleVertical (aWallsBuilt, aCoordWall1);
    bool bConstructible2 = IsConstructibleVertical (aWallsBuilt, aCoordWall2);
@@ -921,7 +915,7 @@ bool CIA::BuildVerticalWall (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aP
    return bConstructible1 || bConstructible2;
 }
 
-bool CIA::BuildHorizontalWall (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore)
+bool CIA::BuildHorizontalWall (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const vector<WallDatas>& aWallsBuilt, const Coord& aCoordWall1, const Coord& aCoordWall2, WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore)
 {
    bool bConstructible1 = IsConstructibleHorizontal (aWallsBuilt, aCoordWall1);
    bool bConstructible2 = IsConstructibleHorizontal (aWallsBuilt, aCoordWall2);
@@ -955,15 +949,31 @@ bool CIA::BuildHorizontalWall (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& 
    return bConstructible1 || bConstructible2;
 }
 
-bool CIA::ChercheNewPCCPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& aPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore)
+bool CIA::TestPositionMur (const CPlayer::List& aPlayersDatas, const WallDatas& aWallDatas)
 {
    bool bConstructible = true;
    AjoutMurMatriceGrapheLite (aWallDatas, false);
    CalculCheminMinimaux ();
-   CPlayerDatas::List::iterator itPlayerDatas = aPlayersDatas.begin ();
+   CPlayer::List::const_iterator itPlayerDatas = aPlayersDatas.begin ();
    while (itPlayerDatas != aPlayersDatas.end () && bConstructible) {
       vector<int> PCC;
-      bConstructible = CalculPlusCourtCheminPlayer (*itPlayerDatas, PCC);
+      bConstructible = CalculPCCPlayer (*itPlayerDatas, PCC);
+      ++itPlayerDatas;
+   }
+   AjoutMurMatriceGrapheLite (aWallDatas, true);
+   CalculCheminMinimaux ();
+   return bConstructible;
+}
+
+bool CIA::ChercheNewPCCPlayer (CPlayer::List& aPlayersDatas, CPlayer& aPlayer, const WallDatas& aWallDatas, unsigned int& aLengthPCC, double& aScore)
+{
+   bool bConstructible = true;
+   AjoutMurMatriceGrapheLite (aWallDatas, false);
+   CalculCheminMinimaux ();
+   CPlayer::List::iterator itPlayerDatas = aPlayersDatas.begin ();
+   while (itPlayerDatas != aPlayersDatas.end () && bConstructible) {
+      vector<int> PCC;
+      bConstructible = CalculPCCPlayer (*itPlayerDatas, PCC);
       if (bConstructible) {
          const int Length = PCC.size ();
          if ((*itPlayerDatas).GetId () == _myId) {
@@ -981,7 +991,7 @@ bool CIA::ChercheNewPCCPlayer (CPlayerDatas::List& aPlayersDatas, CPlayerDatas& 
    return bConstructible;
 }
 
-void CIA::SelectionneBestWall (const CPlayerDatas& aPlayerDatas,
+void CIA::SelectionneBestWall (const CPlayer& aPlayerDatas,
 const bool& abConstructible1,
 const WallDatas& aWallDatas1,
 const unsigned int& aLengthPCC1,
@@ -1073,7 +1083,7 @@ double& aScore)
    }
 }
 
-bool CIA::IsCheminPossiblePlayer (const CPlayerDatas& aPlayersDatas) const
+bool CIA::IsCheminPossiblePlayer (const CPlayer& aPlayersDatas) const
 {
     bool bCheminExiste = false;
     if ((aPlayersDatas.GetPosition ().X == -1) || (aPlayersDatas.GetPosition ().Y == -1) || (aPlayersDatas.GetDirection () == -1)) {
@@ -1115,7 +1125,7 @@ bool CIA::IsCheminPossible (const int aNumCaseDepart, const int aNumCaseArrivee)
     int NbIterMax = mHeight * mWidth;
     int NbIter = 0;
     while ((NbIter != NbIterMax) && (NumCaseCourante != aNumCaseArrivee) && (NumCaseCourante < POIDS_MUR)) {
-        NumCaseCourante = mCheminsMinimaux[aNumCaseArrivee][NumCaseCourante];
+        NumCaseCourante = mCheminsMin[aNumCaseArrivee][NumCaseCourante];
         ++NbIter;
     }
     return ((NbIter != NbIterMax) && (NumCaseCourante < POIDS_MUR));
@@ -1128,20 +1138,20 @@ void CIA::AjoutMurMatriceGraphe (const WallDatas& aWallDatas)
       if ((aWallDatas.Pos.X != 0) && (aWallDatas.Pos.X != mWidth)) {
          int NumCase1 = aWallDatas.Pos.X - 1 + aWallDatas.Pos.Y * mWidth;
          int NumCase2 = aWallDatas.Pos.X - 1 + (aWallDatas.Pos.Y + 1) * mWidth;
-         mMatriceGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
-         mMatriceGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
-         mMatriceGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
-         mMatriceGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
+         mMatGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
+         mMatGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
+         mMatGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
+         mMatGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
       }
    }
    else if ((false == bVertical) && (aWallDatas.Pos.X != mWidth)) {
       if ((aWallDatas.Pos.Y != 0) &&  (aWallDatas.Pos.Y != mHeight)) {
          int NumCase1 = aWallDatas.Pos.X + (aWallDatas.Pos.Y - 1) * mWidth;
          int NumCase2 = aWallDatas.Pos.X + 1 + (aWallDatas.Pos.Y - 1) * mWidth;
-         mMatriceGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
-         mMatriceGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
-         mMatriceGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
-         mMatriceGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
+         mMatGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
+         mMatGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
+         mMatGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
+         mMatGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
         }
     }
 }
@@ -1154,16 +1164,16 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
          int NumCase1 = aWallDatas.Pos.X - 1 + aWallDatas.Pos.Y * mWidth;
          int NumCase2 = aWallDatas.Pos.X - 1 + (aWallDatas.Pos.Y + 1) * mWidth;
          if (abDestroy) {
-            mMatriceGraph[NumCase1][NumCase1 + 1] /= POIDS_MUR;
-            mMatriceGraph[NumCase1 + 1][NumCase1] /= POIDS_MUR;
-            mMatriceGraph[NumCase2][NumCase2 + 1] /= POIDS_MUR;
-            mMatriceGraph[NumCase2 + 1][NumCase2] /= POIDS_MUR;
+            mMatGraph[NumCase1][NumCase1 + 1] /= POIDS_MUR;
+            mMatGraph[NumCase1 + 1][NumCase1] /= POIDS_MUR;
+            mMatGraph[NumCase2][NumCase2 + 1] /= POIDS_MUR;
+            mMatGraph[NumCase2 + 1][NumCase2] /= POIDS_MUR;
          }
          else {
-            mMatriceGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
-            mMatriceGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
-            mMatriceGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
-            mMatriceGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
+            mMatGraph[NumCase1][NumCase1 + 1] *= POIDS_MUR;
+            mMatGraph[NumCase1 + 1][NumCase1] *= POIDS_MUR;
+            mMatGraph[NumCase2][NumCase2 + 1] *= POIDS_MUR;
+            mMatGraph[NumCase2 + 1][NumCase2] *= POIDS_MUR;
          }
       }
    }
@@ -1172,16 +1182,16 @@ void CIA::AjoutMurMatriceGrapheLite (const WallDatas& aWallDatas, const bool abD
          int NumCase1 = aWallDatas.Pos.X + (aWallDatas.Pos.Y - 1) * mWidth;
          int NumCase2 = aWallDatas.Pos.X + 1 + (aWallDatas.Pos.Y - 1) * mWidth;
          if (abDestroy) {
-            mMatriceGraph[NumCase1][NumCase1 + mWidth] /= POIDS_MUR;
-            mMatriceGraph[NumCase1 + mWidth][NumCase1] /= POIDS_MUR;
-            mMatriceGraph[NumCase2][NumCase2 + mWidth] /= POIDS_MUR;
-            mMatriceGraph[NumCase2 + mWidth][NumCase2] /= POIDS_MUR;
+            mMatGraph[NumCase1][NumCase1 + mWidth] /= POIDS_MUR;
+            mMatGraph[NumCase1 + mWidth][NumCase1] /= POIDS_MUR;
+            mMatGraph[NumCase2][NumCase2 + mWidth] /= POIDS_MUR;
+            mMatGraph[NumCase2 + mWidth][NumCase2] /= POIDS_MUR;
          }
          else {
-            mMatriceGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
-            mMatriceGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
-            mMatriceGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
-            mMatriceGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
+            mMatGraph[NumCase1][NumCase1 + mWidth] *= POIDS_MUR;
+            mMatGraph[NumCase1 + mWidth][NumCase1] *= POIDS_MUR;
+            mMatGraph[NumCase2][NumCase2 + mWidth] *= POIDS_MUR;
+            mMatGraph[NumCase2 + mWidth][NumCase2] *= POIDS_MUR;
          }
       }
    }
@@ -1191,7 +1201,7 @@ int main()
 {
    int playerCount;
    cin >> _Width >> _Height >> playerCount >> _myId; cin.ignore();
-   CPlayerDatas::List     PlayersDatasOrdonnes;
+   CPlayer::List     PlayersDatasOrdonnes;
    vector<WallDatas>      WallsDatas;
    bool                   bBuildingOn = false;
    bool           bModePatternOn = true;
@@ -1213,7 +1223,7 @@ int main()
          cin >> x >> y >> wallsLeft; cin.ignore();
          cerr << x << " " << y << " " << wallsLeft << endl;
          if ((x != -1) && (y != -1) && (wallsLeft != -1)) {
-            PlayersDatasOrdonnes.push_back (CPlayerDatas(static_cast<EDirection>(i), Coord{x, y}, wallsLeft));
+            PlayersDatasOrdonnes.push_back (CPlayer(static_cast<EDirection>(i), Coord{x, y}, wallsLeft));
          }
       }
       int wallCount;
@@ -1231,16 +1241,16 @@ int main()
       bool  bAvance = true;
       bool  bPattern = false;
       string Action;
-      CPlayerDatas::List::iterator ItPlayerOrdonnes;
+      CPlayer::List::iterator ItPlayerOrdonnes;
       for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
            ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
            ++ItPlayerOrdonnes) {
          vector<int> PCC;
-         IA.CalculPlusCourtCheminPlayer (*ItPlayerOrdonnes, PCC);
+         IA.CalculPCCPlayer (*ItPlayerOrdonnes, PCC);
          (*ItPlayerOrdonnes).SetPCC (PCC);
       }
       PlayersDatasOrdonnes.sort (ComparePlayer);
-      CPlayerDatas::List::iterator Me;
+      CPlayer::List::iterator Me;
       for (ItPlayerOrdonnes = PlayersDatasOrdonnes.begin ();
            ItPlayerOrdonnes != PlayersDatasOrdonnes.end ();
            ++ItPlayerOrdonnes) {
@@ -1254,9 +1264,9 @@ int main()
          bAvance =  ((*Me).GetNbWallsLeft () == 0);
          bAvance |= ((*Me) == PlayersDatasOrdonnes.front ());
          bAvance |= ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.front ().GetPCC ().size () - Marge));
-         bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
+         bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 3) && !bBuildingOn));
          if (bModePatternOn) {
-            CPlayerDatas::List::iterator OtherPlayer = PlayersDatasOrdonnes.begin ();
+            CPlayer::List::iterator OtherPlayer = PlayersDatasOrdonnes.begin ();
             if (OtherPlayer == Me) {
                ++OtherPlayer;
             }
@@ -1279,7 +1289,7 @@ int main()
                }
                if (bPatternStarted) {
                   cerr << (*OtherPlayer).GetId () << " : " << (*OtherPlayer).GetPCC ().size () << endl;
-                  if ((*OtherPlayer).GetPCC ().size () > 2) {
+                  if ((*OtherPlayer).GetPCC ().size () > 3) {
                      CurrentStep = (*Me).GetNextStep (WallsDatas, CurrentStep, WallDatasRef, Action);
                      if (CurrentStep == 0) {
                         bPattern = false;
@@ -1293,7 +1303,11 @@ int main()
                      }
                   }
                   else {
+                     if ((*Me) == PlayersDatasOrdonnes.front ()) {
+                        PlayersDatasOrdonnes.splice (PlayersDatasOrdonnes.end (), PlayersDatasOrdonnes, Me);
+                     }
                      bPattern = false;
+                     bAvance = false;
                   }
                }
             }
