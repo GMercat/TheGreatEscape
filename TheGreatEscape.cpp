@@ -1630,36 +1630,41 @@ int main()
          bAvance |= ((*Me) == PlayersDatasOrdonnes.front ());
          bAvance |= ((*Me).GetPCC ().size () == (PlayersDatasOrdonnes.front ().GetPCC ().size () - Marge));
          bAvance |= (((*Me) != PlayersDatasOrdonnes.front ()) && ((PlayersDatasOrdonnes.front ().GetPCC ().size () > 2) && !bBuildingOn));
-         if (bModePatternOn && ((*Me).GetPCC ().size () > 2)) {
+         if (bModePatternOn) {
             CPlayerDatas::List::iterator OtherPlayer = PlayersDatasOrdonnes.begin ();
             while ((OtherPlayer != PlayersDatasOrdonnes.end ()) && (OtherPlayer != Me)) {
                ++OtherPlayer;
             }
-            if (!bPatternStarted && (*Me).IsPositionStartPattern ()) {
-               if ((*OtherPlayer).GetPCC ().size () > 2) {
-                  if ((*Me).StartPattern (WallsDatas, WallDatasRef)) {
-                     CurrentStep = 0;
-                     bPattern = true;
-                     bPatternStarted = true;
+            if (((*Me).GetPCC ().size () > 2)) {
+               if (!bPatternStarted && (*Me).IsPositionStartPattern ()) {
+                  if ((*OtherPlayer).GetPCC ().size () > 2) {
+                     if ((*Me).StartPattern (WallsDatas, WallDatasRef)) {
+                        CurrentStep = 0;
+                        bPattern = true;
+                        bPatternStarted = true;
+                     }
+                  }
+                  else {
+                     // Il faut que l'ennemi soit éloigné
+                     bAvance = false;
                   }
                }
-               else {
-                  // Il faut que l'ennemi soit éloigné
-                  bAvance = false;
+               if (bPatternStarted) {
+                  if ((*OtherPlayer).GetPCC ().size () > 5) {
+                     CurrentStep = (*Me).GetNextStep (WallsDatas, CurrentStep, WallDatasRef, Action);
+                     if (CurrentStep == 0) {
+                        bPattern = false;
+                        bPatternStarted = false;
+                     }
+                     else
+                     {
+                        bPattern = true;
+                     }
+                  }
                }
             }
-            if (bPatternStarted) {
-               if ((*OtherPlayer).GetPCC ().size () > 5) {
-                  CurrentStep = (*Me).GetNextStep (WallsDatas, CurrentStep, WallDatasRef, Action);
-                  if (CurrentStep == 0) {
-                     bPattern = false;
-                     bPatternStarted = false;
-                  }
-                  else
-                  {
-                     bPattern = true;
-                  }
-               }
+            else if (((*Me) != PlayersDatasOrdonnes.front ()) && ((*OtherPlayer).GetPCC ().size () < 5)) {
+               bAvance = false;
             }
          }
       }
